@@ -6,12 +6,8 @@ import pandas as pd
 # import customtkinter as ctk -> can be useful for restyling
 from tkinter import filedialog as fd
 from pandastable import Table # plotting a table from a DataFrame
-import inspect
-import sys
-
-
-
-# ['Test1', 'Test2']
+import inspect # elaborating to what to do
+import sys # elaborating to what to do
 
 """ 
 TODO: - Code optimization through Loop and better Attributes assignment

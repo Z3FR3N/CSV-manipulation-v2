@@ -443,8 +443,8 @@ class App(MainWindow):
            #window.grab_set
 
     def info(self):
-      ColumnsComparison(self)
-      print(dir(ColumnsComparison))
+      colonna = ColumnsComparison(self) # always instanciate to use properties
+      print(colonna.name)
 
     def reset(self, count = 0):
         

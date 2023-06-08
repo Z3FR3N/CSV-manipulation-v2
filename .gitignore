@@ -1,4 +1,1 @@
-functions/__pycache__/
-__pycache__/
-dialogs/__pycache__/
-
+*.pyc

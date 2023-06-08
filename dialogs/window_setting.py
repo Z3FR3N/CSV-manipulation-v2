@@ -1,4 +1,5 @@
-from main_settings import *
+from main_settings import MainWindow
+import tkinter as tk
 
 # abstract class that initialize a window object with useful parameters
 

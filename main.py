@@ -1,7 +1,6 @@
 from main_settings import *
 from dialogs.dialogs import *
 from functions.functions import *
-import functions
 import pandas as pd
 # import customtkinter as ctk -> can be useful for restyling
 from tkinter import filedialog as fd
@@ -17,10 +16,11 @@ TODO: - Code optimization through Loop and better Attributes assignment
       - Label for Comboboxes [v]
       - Completare la lettura del dataframe [v]
       - Cominciare l'implementazione delle funzioni
+
 """
 
 class App(MainWindow):
-    
+
     def __init__(self):
         super().__init__('Manipolazione CSV', 550, 500, 400, "CSV manipulation v2\\ICO.png", 30 )
 
@@ -565,19 +565,8 @@ class App(MainWindow):
     
     def create_list(self):
       class_list = [cls_name for cls_name, cls_obj in inspect.getmembers(sys.modules['functions.functions']) if inspect.isclass(cls_obj)]
-      remove_list = [ 'ABCMeta', 
-                      'Error',
-                      'Function',
-                      'MainWindow',
-                      'Parameters',
-                      'ThreadPool',
-                      'Window',
-                      'main']
       functions_list = []
-
-      for name in remove_list:
-        class_list.remove(name)
-      
+      print(class_list)
       for i in class_list:
         # Suppose we have a module called "math" with a function called "sqrt"
         # We don't know the name of the function in advance, so we use a variable to store it
@@ -589,6 +578,5 @@ class App(MainWindow):
       return functions_list
 
 if __name__ == "__main__":
-    print(dir(functions))
     app = App()
     app.mainloop()

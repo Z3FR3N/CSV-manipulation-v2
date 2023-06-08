@@ -1,6 +1,6 @@
 from tkinter import ttk
 from dialogs.window_setting import Window
-from main_settings import *
+from main_settings import MainWindow
 
 class Error(Window):
     def __init__(self, main_window: MainWindow, message : str):

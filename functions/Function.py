@@ -1,4 +1,4 @@
-from dialogs.dialogs import *
+from dialogs.dialogs import Parameters, MainWindow
 import pandas as pd
 from main import App as main
 from abc import ABCMeta, abstractmethod

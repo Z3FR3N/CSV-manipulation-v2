@@ -1,7 +1,6 @@
-from dialogs.dialogs import *
+from functions.Function import Function, MainWindow
 import numpy as np
 import datetime as dt
-from functions.Function import *
 from multiprocessing.pool import ThreadPool
 
 # functions contiene le funzioni che manipolano i dati

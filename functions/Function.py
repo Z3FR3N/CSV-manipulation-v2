@@ -1,13 +1,11 @@
-from dialogs.dialogs import Parameters, MainWindow
 import pandas as pd
 from main import App as main
 from abc import ABCMeta, abstractmethod
 
 # Function serves as an abstract class to initialize a general function
 
-class Function(Parameters, metaclass= ABCMeta):
-    def __init__(self, name: str, main_window : MainWindow, height : int, width: int):
-      super().__init__(main_window, height, width)
+class Function(metaclass= ABCMeta):
+    def __init__(self, name: str):
       self._name = name
       self._data1 = main.first_file
       self._data2 = main.second_file
@@ -24,5 +22,13 @@ class Function(Parameters, metaclass= ABCMeta):
         return self._result
     
     @abstractmethod
+    def take_parameters(self):
+        print('construct a child parameter to take input')
+        
+
+    @abstractmethod
     def generate(self):
-        pass
+        print('do something')
+    
+    def __str__(self):
+        return self._name

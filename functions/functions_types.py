@@ -1,4 +1,5 @@
-from functions.Function import Function, MainWindow
+from dialogs.dialogs import Error, Parameters
+from functions.Function import Function
 import numpy as np
 import datetime as dt
 from multiprocessing.pool import ThreadPool
@@ -6,21 +7,45 @@ from multiprocessing.pool import ThreadPool
 # functions contiene le funzioni che manipolano i dati
 
 class ColumnsComparison(Function):
-    def __init__(self, main_window : MainWindow):
-        super().__init__('Comparazione colonne e prelievo', main_window, 100, 200)
-        self.focus()
-        print('Instanziata')
+    def __init__(self):
+        super().__init__('Comparazione colonne e prelievo')
+    
+    def take_parameters(self):
+        print('construct a child parameter to take input')
 
     def generate(self):
       print('do something')
 
 class Banana(Function):
-  def __init__(self, main_window : MainWindow):
-    super().__init__('Comparazione colonne e prelievo', main_window, 100, 200)
-    self.focus()
+  def __init__(self):
+    super().__init__('Banana')
+
+  def take_parameters(self):
+        print('construct a child parameter to take input')
 
   def generate(self):
     print('do something')
+
+class CuccioloDiMarzapane(Function):
+  def __init__(self):
+    super().__init__('Bombolotto')
+
+  def take_parameters(self):
+        print('construct a child parameter to take input')
+
+  def generate(self):
+    print('do something')
+
+class PercheBruciIlRum(Function):
+  def __init__(self):
+    super().__init__('Si ma perche` il rum?')
+
+  def take_parameters(self):
+        print('construct a child parameter to take input')
+
+  def generate(self):
+    print('do something')
+
 
 """ '
 def carica_file(numero):

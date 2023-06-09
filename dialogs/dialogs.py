@@ -20,6 +20,7 @@ class Error(Window):
 class Parameters(Window):
     def __init__(self, main_window : MainWindow, width: int, height : int):
         super().__init__(main_window, 'Inserimento parametri', width, height)
+        self.focus()
         self.grab_set()
 
 # restituire un dataframe con le voci scartate

@@ -1,13 +1,11 @@
 from main_settings import *
 from dialogs.dialogs import *
-from functions.functions import *
+from functions import functions_types
 import pandas as pd
 # import customtkinter as ctk -> can be useful for restyling
 from tkinter import filedialog as fd
 from pandastable import Table # plotting a table from a DataFrame
-import inspect # elaborating to what to do
-import sys # elaborating to what to do
-
+import inspect, sys
 """ 
 TODO: - Code optimization through Loop and better Attributes assignment
       - Creare un attributo di tipo lista con oppurtuni setter e getter per 
@@ -15,21 +13,21 @@ TODO: - Code optimization through Loop and better Attributes assignment
       - Differenziare il caricamento del primo e del secondo file con bottoni appositi [v]
       - Label for Comboboxes [v]
       - Completare la lettura del dataframe [v]
-      - Cominciare l'implementazione delle funzioni
-
+      - Implementare le funzioni
 """
 
 class App(MainWindow):
 
     def __init__(self):
         super().__init__('Manipolazione CSV', 550, 500, 400, "CSV manipulation v2\\ICO.png", 30 )
-
+        self._function_list = []
+        self._function_list_names = []
+        self.create_list()
         self._first_file_name = tk.StringVar(value= 'Nessun File caricato.')
         self._second_file_name = tk.StringVar(value= 'Nessun File caricato.')
         self._first_sep = tk.StringVar()
         self._second_sep = tk.StringVar()
         self._selected_function = tk.StringVar()
-        self._functions_list = self.create_list()
         self._first_loaded_file = None
         self._second_loaded_file = None
 
@@ -92,7 +90,7 @@ class App(MainWindow):
         
         self._genera = ttk.Button(  self._main_frame,
                                     text= 'Genera',
-                                    command= self.generate)
+                                    command= self.generate(self._selected_function))
                 
         # Combobox for selecting the function to launch
 
@@ -108,7 +106,7 @@ class App(MainWindow):
         self._functions_cbox = ttk.Combobox(  self._functions_frame, 
                                               textvariable= self._selected_function,
                                               # values: lists of functions available
-                                              values= self._functions_list)
+                                              values= self._function_list_names)
         
         self._functions_text.grid(row= 0, column= 0)
         self._functions_cbox.grid(row= 0, column= 1, sticky=('WE'))
@@ -411,6 +409,7 @@ class App(MainWindow):
         self._csv_preview.insert( position, 
                                   self._csv, 
                                   text = name )
+        
         self._csv_preview.select(self._csv)
 
       else:
@@ -443,8 +442,8 @@ class App(MainWindow):
            #window.grab_set
 
     def info(self):
-      colonna = ColumnsComparison(self) # always instanciate to use properties
-      print(colonna.name)
+      #colonna = ColumnsComparison(self) # always instanciate to use properties
+      print('banana')
 
     def reset(self, count = 0):
         
@@ -468,8 +467,9 @@ class App(MainWindow):
            self._second_file_name.set('')
            self.clean_preview(count)
 
-    def generate(self):
+    def generate(self, function : str):
       Parameters(self, 50, 120)
+      print(self._selected_function.get())
         
     def save(self):
 
@@ -564,18 +564,15 @@ class App(MainWindow):
           self._carica.config(state= tk.DISABLED)
     
     def create_list(self):
-      class_list = [cls_name for cls_name, cls_obj in inspect.getmembers(sys.modules['functions.functions']) if inspect.isclass(cls_obj)]
-      functions_list = []
-      print(class_list)
-      for i in class_list:
-        # Suppose we have a module called "math" with a function called "sqrt"
-        # We don't know the name of the function in advance, so we use a variable to store it
-
-        # Use globals() to retrieve the function from the global namespace
-        func = globals()[i]
-        functions_list.append(func)
-
-      return functions_list
+      
+      for name, obj in inspect.getmembers(sys.modules[functions_types.__name__]):
+          if inspect.isclass(obj):
+            try:
+              self._function_list_names.append(obj().name)
+            except:
+               continue
+            finally:
+               self._function_list.append(obj)
 
 if __name__ == "__main__":
     app = App()

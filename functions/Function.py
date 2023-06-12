@@ -2,7 +2,7 @@ import pandas as pd
 from main import App as main
 from abc import ABCMeta, abstractmethod
 
-# Function serves as an abstract class to initialize a general function
+# Function serves as an abstract class to initialize a general function which will be implemented in functions_types
 
 class Function(metaclass= ABCMeta):
     def __init__(self, name: str):
@@ -31,4 +31,12 @@ class Function(metaclass= ABCMeta):
         print('do something')
     
     def __str__(self):
-        return self._name
+        return str(self._name)
+    
+    def __eq__(self, __value: object) :
+        if (isinstance(__value, Function)):
+            return self.name == __value.name
+        if (isinstance(__value, str)):
+            return self.name == __value
+        else:
+            raise TypeError

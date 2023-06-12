@@ -2,6 +2,8 @@ from tkinter import ttk
 from dialogs.window_setting import Window
 from main_settings import MainWindow
 
+# Error: calls a windows to display some sort of error
+
 class Error(Window):
     def __init__(self, main_window: MainWindow, message : str):
         super().__init__(main_window,  'Errore', 200, 100)

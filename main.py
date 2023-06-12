@@ -6,14 +6,16 @@ import pandas as pd
 from tkinter import filedialog as fd
 from pandastable import Table # plotting a table from a DataFrame
 import inspect, sys
+
+        
 """ 
+FLOW: load csv -> generate button(it disables) -> save
+      reset -> clear csv and abilitate generate
+
 TODO: - Code optimization through Loop and better Attributes assignment
-      - Creare un attributo di tipo lista con oppurtuni setter e getter per 
-      - Better encapsulate elements
-      - Differenziare il caricamento del primo e del secondo file con bottoni appositi [v]
-      - Label for Comboboxes [v]
-      - Completare la lettura del dataframe [v]
-      - Implementare le funzioni
+      - Finish generate()
+      - Implementing functions
+      - Poor encapsulation: lol -> i'm new at OOP
 """
 
 class App(MainWindow):
@@ -27,7 +29,7 @@ class App(MainWindow):
         self._second_file_name = tk.StringVar(value= 'Nessun File caricato.')
         self._first_sep = tk.StringVar()
         self._second_sep = tk.StringVar()
-        self._selected_function = tk.StringVar()
+        self._selected_function = tk.StringVar(value=" ")
         self._first_loaded_file = None
         self._second_loaded_file = None
 
@@ -90,7 +92,8 @@ class App(MainWindow):
         
         self._genera = ttk.Button(  self._main_frame,
                                     text= 'Genera',
-                                    command= self.generate(self._selected_function))
+                                    state= 'disabled',
+                                    command= self.generate) # impostare un try-catch
                 
         # Combobox for selecting the function to launch
 
@@ -456,27 +459,39 @@ class App(MainWindow):
 
           self.clean_preview()
           self._carica.config(state= tk.ACTIVE)
+          self._genera.state(['disabled'])
 
         if (count == 1):
            self._first_loaded_file = None
            self._first_file_name.set('')
            self.clean_preview()
+           self._genera.state(['disabled'])
 
         if (count == 2):
            self._second_loaded_file = None
            self._second_file_name.set('')
            self.clean_preview(count)
 
-    def generate(self, function : str):
-      Parameters(self, 50, 120)
-      print(self._selected_function.get())
+    def generate(self):
+      #Parameters(self, 50, 120)
+      try:
+        for fun in self._function_list:
+          if fun().__eq__(self._selected_function.get()):
+               if inspect.ismethod(fun().generate):
+                  print(fun) # here fun().generate() to generate the results
+                  self._salva.state(['!disabled'])
+                  break
+      except:
+        Error(self, 'Funzione non valida')
         
     def save(self):
 
         files = [('File CSV', '*.csv')]
         
-        self._saved_file = fd.asksaveasfile(  parent = self, 
-                                              filetypes= files)
+        self._results = fd.asksaveasfile(   parent = self, 
+                                            filetypes= files,
+                                            title= 'Salva con nome',
+                                            confirmoverwrite= True)
         
     def load_first(self):
       files = [('File CSV', '*.csv')]
@@ -507,6 +522,7 @@ class App(MainWindow):
                                     low_memory=False)
               
               self.draw_preview(  data1, self._first_file_name.get().split('.')[0], 1)
+              self._genera.state(['!disabled'])
 
             except:
 
@@ -541,7 +557,8 @@ class App(MainWindow):
                                 sep= sep,
                                 low_memory= False)
           
-          self.draw_preview(data2, self._second_file_name.get().split('.')[0], 2)  
+          self.draw_preview(data2, self._second_file_name.get().split('.')[0], 2)
+          self._genera.state(['!disabled'])
 
         except:
 
@@ -569,11 +586,10 @@ class App(MainWindow):
           if inspect.isclass(obj):
             try:
               self._function_list_names.append(obj().name)
+              self._function_list.append(obj)
             except:
                continue
-            finally:
-               self._function_list.append(obj)
-
+            
 if __name__ == "__main__":
     app = App()
     app.mainloop()

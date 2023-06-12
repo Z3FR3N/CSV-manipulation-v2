@@ -1,10 +1,11 @@
 from dialogs.dialogs import Error, Parameters
-from functions.Function import Function
+from functions.function import Function
 import numpy as np
 import datetime as dt
 from multiprocessing.pool import ThreadPool
 
-# functions contiene le funzioni che manipolano i dati
+# functions contains every data-manipulating class
+# TODO: create an API to dinamically import functions which contains 
 
 class ColumnsComparison(Function):
     def __init__(self):

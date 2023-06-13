@@ -7,11 +7,9 @@ from abc import ABCMeta, abstractmethod
 class Function(metaclass= ABCMeta):
     def __init__(self, name: str):
       self._name = name
-      self._data1 = main.first_file
-      self._data2 = main.second_file
+      self._data1 = main.data1
+      self._data2 = main.data2
       self._result = pd.DataFrame
-      self._sep1 = main.first_separator
-      self._sep2 = main.second_separator
     
     @property
     def name(self):
@@ -23,12 +21,19 @@ class Function(metaclass= ABCMeta):
     
     @abstractmethod
     def take_parameters(self):
-        print('construct a child parameter to take input')
+        pass
         
-
     @abstractmethod
     def generate(self):
-        print('do something')
+        pass
+    
+    @abstractmethod
+    def export(self):
+        pass
+
+    @abstractmethod
+    def info(self):
+        pass
     
     def __str__(self):
         return str(self._name)

@@ -25,4 +25,7 @@ class Parameters(Window):
         self.focus()
         self.grab_set()
 
-# restituire un dataframe con le voci scartate
+class Loading(Window):
+    def __init__(self, main_window: MainWindow, width: int, height: int):
+        super().__init__(main_window, "Elaborazione in corso", width, height)
+

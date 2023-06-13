@@ -4,18 +4,25 @@ import numpy as np
 import datetime as dt
 from multiprocessing.pool import ThreadPool
 
-# functions contains every data-manipulating class
-# TODO: create an API to dinamically import functions which contains 
+# functions_types contains every data-manipulating class, it'll be a huge module probably...
+# TODO: create an API to dinamically import functions from files in a folder 
 
-class ColumnsComparison(Function):
+class Multiplesearch(Function):
+# restituire un dataframe con le voci scartate
     def __init__(self):
-        super().__init__('Comparazione colonne e prelievo')
+        super().__init__('Ricerca multipla')
     
     def take_parameters(self):
-        print('construct a child parameter to take input')
+      print('construct a child parameter to take input')
 
     def generate(self):
       print('do something')
+
+    def export(self):
+       return super().export()
+
+    def info(self):
+       return super().info()
 
 class Banana(Function):
   def __init__(self):
@@ -27,54 +34,45 @@ class Banana(Function):
   def generate(self):
     print('do something')
 
+  def export(self):
+       return super().export()
+  
+  def info(self):
+    return super().info()
+
 class CuccioloDiMarzapane(Function):
   def __init__(self):
     super().__init__('Bombolotto')
 
   def take_parameters(self):
-        print('construct a child parameter to take input')
+    print('construct a child parameter to take input')
 
   def generate(self):
     print('do something')
+
+  def export(self):
+       return super().export()
+  
+  def info(self):
+     return super().info()
 
 class PercheBruciIlRum(Function):
   def __init__(self):
     super().__init__('Si ma perche` il rum?')
 
   def take_parameters(self):
-        print('construct a child parameter to take input')
+    print('construct a child window to take input')
 
   def generate(self):
     print('do something')
 
+  def export(self):
+       return super().export()
+
+  def info(self):
+     return super().info()
 
 """ '
-def carica_file(numero):
-        root = tk.Tk()
-        # Hide the window
-        root.attributes('-alpha', 0.0)
-        # Always have it on top
-        root.attributes('-topmost', True)
-        percorso = filedialog.askopenfilename(parent= root, title="Seleziona " + 
-                                              numero + " file", 
-                                              filetypes=(("File csv", "*.csv"), 
-                                                         ("Tutti i file", "*.*")))
-        root.destroy()
-        return percorso
-
-def preleva_separatore(file):
-        nome_file = str(file).rpartition("/")[2]
-        separatore = input("Indica il separatore per \"" + 
-                           str(nome_file) + "\"\n> ")
-        return separatore
-
-def leggi_csv(file, separatore):
-        elenco = pd.read_csv(file, 
-                             index_col=0, 
-                             sep=str(separatore), 
-                             dtype=str, 
-                             low_memory=False)
-        return elenco
 
 def leggi_header(elenco: pd.DataFrame):
         lista_colonne = elenco.columns.values.tolist()

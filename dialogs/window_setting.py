@@ -21,4 +21,5 @@ class Window(tk.Toplevel):
         self.geometry('%dx%d+%d+%d' % ( width, height, x, y))
 
         self.resizable(False,False)
-        
+        self.focus()
+        self.grab_set

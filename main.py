@@ -5,17 +5,14 @@ import pandas as pd
 # import customtkinter as ctk -> can be useful for restyling
 from tkinter import filedialog as fd
 from pandastable import Table # plotting a table from a DataFrame
-import inspect, sys
+import inspect, sys, io
 
-        
-""" 
-FLOW: load csv -> generate button(it disables) -> save
-      reset -> clear csv and abilitate generate
-
-TODO: - Code optimization through Loop and better Attributes assignment
-      - Finish generate()
-      - Implementing functions
-      - Poor encapsulation: lol -> i'm new at OOP
+"""
+  TODO: - Code optimization through Loop and better Attributes assignment
+        - Finish generate()
+        - Implementing functions
+        - Better naming convention
+        - Poor encapsulation: lol -> i'm new at OOP
 """
 
 class App(MainWindow):
@@ -27,11 +24,13 @@ class App(MainWindow):
         self.create_list()
         self._first_file_name = tk.StringVar(value= 'Nessun File caricato.')
         self._second_file_name = tk.StringVar(value= 'Nessun File caricato.')
-        self._first_sep = tk.StringVar()
-        self._second_sep = tk.StringVar()
+        self._first_sep = tk.StringVar(value=" ")
+        self._second_sep = tk.StringVar(value=" ")
         self._selected_function = tk.StringVar(value=" ")
-        self._first_loaded_file = None
-        self._second_loaded_file = None
+        self._data1 = pd.DataFrame
+        self._data2 = pd.DataFrame
+        self._first_loaded_file = io.RawIOBase
+        self._second_loaded_file = io.RawIOBase
 
         # Adding interface's elements, most complex ones with dedicated method
         self.create_widgets()
@@ -59,6 +58,14 @@ class App(MainWindow):
     @property
     def second_file(self):
         return self._second_loaded_file
+    
+    @property
+    def data1(self):
+        return self._data1
+    
+    @property
+    def data2(self):
+        return self._data2
 
     # METHODS
 
@@ -111,8 +118,8 @@ class App(MainWindow):
                                               # values: lists of functions available
                                               values= self._function_list_names)
         
-        self._functions_text.grid(row= 0, column= 0)
-        self._functions_cbox.grid(row= 0, column= 1, sticky=('WE'))
+        self._functions_text.grid(row= 0, column= 0, sticky= ('E'), padx= 5)
+        self._functions_cbox.grid(row= 0, column= 1, sticky=('W'))
 
         self._functions_frame.rowconfigure(0, weight=1)
         self._functions_frame.columnconfigure(0, weight= 1)
@@ -419,12 +426,9 @@ class App(MainWindow):
         self._csv_preview.add( self._csv, text= name)  
         self._csv_preview.select(self._csv)
       
-      if (len(self._csv_preview.tabs()) >= 3 ):
-        self._carica.config(state=tk.DISABLED)
-      
     def switch(self):
         
-        if((self._first_loaded_file != None and self._second_loaded_file) != None and len(self._csv_preview.tabs()) > 2):
+        if(self._first_loaded_file.read != None and self._second_loaded_file.read != None and len(self._csv_preview.tabs()) > 2):
 
           tmp = self._first_loaded_file
           self._first_loaded_file = self._second_loaded_file
@@ -440,9 +444,7 @@ class App(MainWindow):
           self._csv_preview.select(1)
           
         else:
-           
-           Error(self, "Carica i due CSV!")
-           #window.grab_set
+          Error(self, "Carica i due CSV!")
 
     def info(self):
       #colonna = ColumnsComparison(self) # always instanciate to use properties
@@ -451,8 +453,8 @@ class App(MainWindow):
     def reset(self, count = 0):
         
         if (count == 0):
-          self._first_loaded_file = None
-          self._second_loaded_file = None
+          self._first_loaded_file.flush
+          self._second_loaded_file.flush
 
           self._first_file_name.set('Nessun File caricato.')
           self._second_file_name.set('Nessun File caricato.')
@@ -462,23 +464,22 @@ class App(MainWindow):
           self._genera.state(['disabled'])
 
         if (count == 1):
-           self._first_loaded_file = None
+           self._first_loaded_file.flush
            self._first_file_name.set('')
            self.clean_preview()
            self._genera.state(['disabled'])
 
         if (count == 2):
-           self._second_loaded_file = None
+           self._second_loaded_file.flush
            self._second_file_name.set('')
            self.clean_preview(count)
 
     def generate(self):
-      #Parameters(self, 50, 120)
       try:
         for fun in self._function_list:
           if fun().__eq__(self._selected_function.get()):
                if inspect.ismethod(fun().generate):
-                  print(fun) # here fun().generate() to generate the results
+                  fun().generate() # here fun.generate() to generate the results
                   self._salva.state(['!disabled'])
                   break
       except:
@@ -500,7 +501,7 @@ class App(MainWindow):
                                                 parent= self, 
                                                 filetypes= files )
       
-      if (self._first_loaded_file != None):
+      if (isinstance(self._first_loaded_file, io.IOBase)):
 
             try:
 
@@ -516,19 +517,17 @@ class App(MainWindow):
 
               sep = self._first_sep.get()
 
-              data1 = pd.read_csv(  self._first_loaded_file,
+              self._data1 = pd.read_csv(  self._first_loaded_file,
                                     dtype= str,
                                     sep= sep,
                                     low_memory=False)
               
-              self.draw_preview(  data1, self._first_file_name.get().split('.')[0], 1)
+              self.draw_preview( self._data1, self._first_file_name.get().split('.')[0], 1)
               self._genera.state(['!disabled'])
 
             except:
 
-              error = Error(  self, 'Inserisci il separatore corretto!')
-
-              error.grab_set()
+              Error(  self, 'Inserisci il separatore corretto!')
 
               self.reset(1)
 
@@ -539,7 +538,7 @@ class App(MainWindow):
                                                   parent= self, 
                                                   filetypes= files )
       
-      if (self._second_loaded_file != None):
+      if (isinstance(self._second_loaded_file, io.IOBase)):
         # display second filename
         try:
           
@@ -552,33 +551,24 @@ class App(MainWindow):
                     
           sep = self._second_sep.get()
 
-          data2 = pd.read_csv(  self._second_loaded_file,
+          self._data2 = pd.read_csv(  self._second_loaded_file,
                                 dtype= str,
                                 sep= sep,
                                 low_memory= False)
           
-          self.draw_preview(data2, self._second_file_name.get().split('.')[0], 2)
+          self.draw_preview(self._data2, self._second_file_name.get().split('.')[0], 2)
           self._genera.state(['!disabled'])
 
         except:
 
-          error = Error(self, 'Inserisci il separatore corretto!')
-
-          error.grab_set()
+          Error(self, 'Inserisci il separatore corretto!')
 
           self.reset(2)
        
     def load(self):
-                
-        # load first file
-        if (self._first_loaded_file == None):
 
-          self.load_first()
-
-        if(self._second_loaded_file == None and self._first_loaded_file != None):
-
-          self.load_second()
-          self._carica.config(state= tk.DISABLED)
+      self.load_first()
+      self.load_second()
     
     def create_list(self):
       

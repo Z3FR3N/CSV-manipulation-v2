@@ -1,5 +1,7 @@
-from dialogs.dialogs import Error, Parameters
+from dialogs.dialogs import Parameters, Loading, Error
 from functions.function import Function
+from main_settings import MainWindow
+from tkinter import ttk
 import numpy as np
 import datetime as dt
 from multiprocessing.pool import ThreadPool
@@ -12,21 +14,27 @@ class Multiplesearch(Function):
     def __init__(self):
         super().__init__('Ricerca multipla')
     
-    def take_parameters(self):
-      print('construct a child parameter to take input')
+    def take_parameters(self, main_window: MainWindow):
+      # TODO: prelevare l'header, selezionare le colonne chiave
+      input = Parameters(main_window, 100, 200)
+      
+      ttk.Label(  input.par_frame,
+                  text= 'message').grid(column=0, row= 0)
 
     def generate(self):
+      # TODO: Filtrare le colonne chiave, generare il DataFrame utilizzando Loading
       print('do something')
 
     def export(self):
+       # TODO: Utilizzare Columnsselection per scegliere le colonne
        return super().export()
 
     def info(self):
        return super().info()
 
-class Banana(Function):
+class Columnsselection(Function):
   def __init__(self):
-    super().__init__('Banana')
+    super().__init__('Selezione colonne')
 
   def take_parameters(self):
         print('construct a child parameter to take input')
@@ -40,9 +48,9 @@ class Banana(Function):
   def info(self):
     return super().info()
 
-class CuccioloDiMarzapane(Function):
+class Datacheck(Function):
   def __init__(self):
-    super().__init__('Bombolotto')
+    super().__init__('Controllo e validazione dati')
 
   def take_parameters(self):
     print('construct a child parameter to take input')

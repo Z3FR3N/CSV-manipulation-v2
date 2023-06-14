@@ -1,14 +1,14 @@
-from main_settings import *
-from dialogs.dialogs import *
-from functions import functions_types
-import pandas as pd
+import inspect, sys, io, tkinter as tk, pandas as pd
 # import customtkinter as ctk -> can be useful for restyling
 from tkinter import filedialog as fd
 from pandastable import Table # plotting a table from a DataFrame
-import inspect, sys, io
+from functions import functions_types
+from main_settings import *
+from dialogs.dialogs import *
 
 """
   TODO: - Code optimization through Loop and better Attributes assignment
+        - Give the user the option to save the file also as excel format and to choose tje separator
         - Finish generate()
         - Implementing functions
         - Better naming convention
@@ -19,6 +19,7 @@ class App(MainWindow):
 
     def __init__(self):
         super().__init__('Manipolazione CSV', 550, 500, 400, "CSV manipulation v2\\ICO.png", 30 )
+
         self._function_list = []
         self._function_list_names = []
         self.create_list()
@@ -29,6 +30,7 @@ class App(MainWindow):
         self._selected_function = tk.StringVar(value=" ")
         self._data1 = pd.DataFrame
         self._data2 = pd.DataFrame
+        self._results = pd.DataFrame
         self._first_loaded_file = io.RawIOBase
         self._second_loaded_file = io.RawIOBase
 
@@ -44,20 +46,8 @@ class App(MainWindow):
     # Using property to make accessible read-only values
     
     @property
-    def first_file(self):
-        return self._first_loaded_file
-    
-    @property
-    def first_separator(self):
-        return self._first_sep
-    
-    @property
-    def second_separator(self):
-        return self._second_sep
-    
-    @property
-    def second_file(self):
-        return self._second_loaded_file
+    def results(self):
+       return self._results
     
     @property
     def data1(self):
@@ -99,7 +89,6 @@ class App(MainWindow):
         
         self._genera = ttk.Button(  self._main_frame,
                                     text= 'Genera',
-                                    state= 'disabled',
                                     command= self.generate) # impostare un try-catch
                 
         # Combobox for selecting the function to launch
@@ -116,7 +105,8 @@ class App(MainWindow):
         self._functions_cbox = ttk.Combobox(  self._functions_frame, 
                                               textvariable= self._selected_function,
                                               # values: lists of functions available
-                                              values= self._function_list_names)
+                                              values= self._function_list_names,
+                                              width= self._combobox_width)
         
         self._functions_text.grid(row= 0, column= 0, sticky= ('E'), padx= 5)
         self._functions_cbox.grid(row= 0, column= 1, sticky=('W'))
@@ -461,7 +451,6 @@ class App(MainWindow):
 
           self.clean_preview()
           self._carica.config(state= tk.ACTIVE)
-          self._genera.state(['disabled'])
 
         if (count == 1):
            self._first_loaded_file.flush
@@ -478,9 +467,10 @@ class App(MainWindow):
       try:
         for fun in self._function_list:
           if fun().__eq__(self._selected_function.get()):
-               if inspect.ismethod(fun().generate):
-                  fun().generate() # here fun.generate() to generate the results
-                  self._salva.state(['!disabled'])
+               if inspect.ismethod(fun().take_parameters):
+                  fun().take_parameters(self)
+                  if (not self._results.empty):
+                    self._salva.state(['!disabled'])
                   break
       except:
         Error(self, 'Funzione non valida')
@@ -488,12 +478,17 @@ class App(MainWindow):
     def save(self):
 
         files = [('File CSV', '*.csv')]
+
+        path = fd.asksaveasfile(    parent = self, 
+                                        filetypes= files,
+                                        title= 'Salva con nome',
+                                        confirmoverwrite= True)
         
-        self._results = fd.asksaveasfile(   parent = self, 
-                                            filetypes= files,
-                                            title= 'Salva con nome',
-                                            confirmoverwrite= True)
-        
+        if (path != None):
+          self._results.to_csv(path, index=False, lineterminator='\n', encoding='utf-8', sep=';')
+        else:
+           Error(self, 'Indica un file!')
+         
     def load_first(self):
       files = [('File CSV', '*.csv')]
 
@@ -527,7 +522,7 @@ class App(MainWindow):
 
             except:
 
-              Error(  self, 'Inserisci il separatore corretto!')
+              Error(self, 'Inserisci il separatore corretto!')
 
               self.reset(1)
 
@@ -575,10 +570,15 @@ class App(MainWindow):
       for name, obj in inspect.getmembers(sys.modules[functions_types.__name__]):
           if inspect.isclass(obj):
             try:
-              self._function_list_names.append(obj().name)
+              self._function_list_names.append(str(obj().name))
               self._function_list.append(obj)
             except:
                continue
+      
+      self._combobox_width = 0
+      for name in self._function_list_names:
+         if len(name) > self._combobox_width:
+            self._combobox_width = len(name)
             
 if __name__ == "__main__":
     app = App()

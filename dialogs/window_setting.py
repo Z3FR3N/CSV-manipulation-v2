@@ -1,11 +1,11 @@
-from main_settings import MainWindow
 import tkinter as tk
+from main_settings import MainWindow
 
 # abstract class that initialize a window object with useful parameters
 
 class Window(tk.Toplevel):
-    def __init__(self, main_window: MainWindow, title: str, width: int, height: int):
-        super().__init__(main_window, takefocus= True, width= width, height= height)
+    def __init__(self, main_window : MainWindow, title: str, width: int, height: int):
+        super().__init__(main_window , takefocus= True, width= width, height= height)
 
         self.title(title)
 

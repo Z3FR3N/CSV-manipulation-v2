@@ -5,43 +5,59 @@ from abc import ABCMeta, abstractmethod
 # Function serves as an abstract class to initialize a general function which will be implemented in functions_types
 
 class Function(metaclass= ABCMeta):
-    def __init__(self, name: str):
+    
+    def __init__(self, name: str, main_window : main):
       self._name = name
-      self._data1 = main.data1
-      self._data2 = main.data2
-      self._result = pd.DataFrame
+      self._data1 = main_window.get_data1()
+      self._data2 = main_window.get_data2()
+      self._result = main_window.get_results()
+      self._main_window = main_window
     
     @property
     def name(self):
-        return self._name
+       return self._name
+
+    @property
+    def data1(self):
+       return self._data1
+    
+    @property
+    def data2(self):
+       return self._data2
     
     @property
     def result(self):
-        return self._result
+       return self._data1
+    
+    @property
+    def main_window(self):
+       return self._main_window
     
     @abstractmethod
     def take_parameters(self):
-        pass
+      # Calls gat_data1 and get_data2
+      pass
         
     @abstractmethod
     def generate(self):
-        pass
+      pass
     
     @abstractmethod
     def export(self):
-        pass
+      # Calls main.set_result()
+      pass
 
     @abstractmethod
     def info(self):
-        pass
+      pass
     
     def __str__(self):
-        return str(self._name)
+      return str(self._name)
     
     def __eq__(self, __value: object) :
-        if (isinstance(__value, Function)):
-            return self.name == __value.name
-        if (isinstance(__value, str)):
-            return self.name == __value
-        else:
-            raise TypeError
+      if (isinstance(__value, Function)):
+          return self.name == __value.name
+      if (isinstance(__value, str)):
+          return self.name == __value
+      else:
+          raise TypeError

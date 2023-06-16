@@ -1,7 +1,7 @@
-from dialogs.dialogs import Parameters, Loading, Error
+from dialogs.dialogs import Parameters, Loading, Error, App
 from functions.function import Function
-from main_settings import MainWindow
 from tkinter import ttk
+import pandas as pd
 import numpy as np
 import datetime as dt
 from multiprocessing.pool import ThreadPool
@@ -11,77 +11,47 @@ from multiprocessing.pool import ThreadPool
 
 class Multiplesearch(Function):
 # restituire un dataframe con le voci scartate
-    def __init__(self):
-        super().__init__('Ricerca multipla')
+    def __init__(self, main_window : App):
+      super().__init__('Ricerca multipla', main_window)
     
-    def take_parameters(self, main_window: MainWindow):
+    def take_parameters(self):
       # TODO: prelevare l'header, selezionare le colonne chiave
-      input = Parameters(main_window, 100, 200)
-      
-      ttk.Label(  input.par_frame,
-                  text= 'message').grid(column=0, row= 0)
+      Parameters(self.main_window, 300, 300)
 
     def generate(self):
       # TODO: Filtrare le colonne chiave, generare il DataFrame utilizzando Loading
       print('do something')
 
     def export(self):
-       # TODO: Utilizzare Columnsselection per scegliere le colonne
-       return super().export()
+      # TODO: Utilizzare Columnsselection per scegliere le colonne
+      return super().export()
 
     def info(self):
-       return super().info()
+      return super().info()
 
 class Columnsselection(Function):
-  def __init__(self):
-    super().__init__('Selezione colonne')
+  def __init__(self, main_window : App):
+    super().__init__('Selezione colonne', main_window)
 
   def take_parameters(self):
-        print('construct a child parameter to take input')
-
+    print('construct a child parameter to take input')
+    lista_colonne = self.data1.columns.values.tolist()
+    numero_colonne = np.size(lista_colonne)
+    print(lista_colonne)
+    ciao = Parameters(self.main_window, 300, 300)
+    
+    ttk.Label(ciao, text= 'ciao').grid(column= 0, row= 0) # it works!
+        
   def generate(self):
     print('do something')
 
   def export(self):
-       return super().export()
+    return super().export()
   
   def info(self):
     return super().info()
 
-class Datacheck(Function):
-  def __init__(self):
-    super().__init__('Controllo e validazione dati')
-
-  def take_parameters(self):
-    print('construct a child parameter to take input')
-
-  def generate(self):
-    print('do something')
-
-  def export(self):
-       return super().export()
-  
-  def info(self):
-     return super().info()
-
-class PercheBruciIlRum(Function):
-  def __init__(self):
-    super().__init__('Si ma perche` il rum?')
-
-  def take_parameters(self):
-    print('construct a child window to take input')
-
-  def generate(self):
-    print('do something')
-
-  def export(self):
-       return super().export()
-
-  def info(self):
-     return super().info()
-
 """ '
-
 def leggi_header(elenco: pd.DataFrame):
         lista_colonne = elenco.columns.values.tolist()
         numero_colonne = np.size(lista_colonne)

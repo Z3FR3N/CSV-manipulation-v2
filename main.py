@@ -2,9 +2,8 @@ import inspect, sys, io, tkinter as tk, pandas as pd
 # import customtkinter as ctk -> can be useful for restyling
 from tkinter import filedialog as fd
 from pandastable import Table # plotting a table from a DataFrame
-from functions import functions_types
+from functions.functions_types import *
 from main_settings import *
-from dialogs.dialogs import *
 
 """
   TODO: - Code optimization through Loop and better Attributes assignment
@@ -16,6 +15,9 @@ from dialogs.dialogs import *
 """
 
 class App(MainWindow):
+    _data1 = pd.DataFrame()
+    _data2 = pd.DataFrame()
+    _results = pd.DataFrame()
 
     def __init__(self):
         super().__init__('Manipolazione CSV', 550, 500, 400, "CSV manipulation v2\\ICO.png", 30 )
@@ -28,11 +30,8 @@ class App(MainWindow):
         self._first_sep = tk.StringVar(value=" ")
         self._second_sep = tk.StringVar(value=" ")
         self._selected_function = tk.StringVar(value=" ")
-        self._data1 = pd.DataFrame
-        self._data2 = pd.DataFrame
-        self._results = pd.DataFrame
-        self._first_loaded_file = io.RawIOBase
-        self._second_loaded_file = io.RawIOBase
+        self._first_loaded_file = None
+        self._second_loaded_file = None
 
         # Adding interface's elements, most complex ones with dedicated method
         self.create_widgets()
@@ -43,18 +42,15 @@ class App(MainWindow):
         # Always create the grid AFTER widgets
         self.create_grid()
     
-    # Using property to make accessible read-only values
-    
-    @property
-    def results(self):
+    # "Getter"
+
+    def get_results(self):
        return self._results
     
-    @property
-    def data1(self):
+    def get_data1(self):
         return self._data1
     
-    @property
-    def data2(self):
+    def get_data2(self):
         return self._data2
 
     # METHODS
@@ -193,7 +189,7 @@ class App(MainWindow):
         
         # Row 1
 
-        self._functions_frame.grid(  column= 1,
+        self._functions_frame.grid( column= 1,
                                     row= 0,
                                     columnspan= 2,
                                     sticky=('EW'),
@@ -387,7 +383,7 @@ class App(MainWindow):
       self._csv_preview.add(self._no_preview, text= 'No csv')
       
       if (len(self._csv_preview.tabs()) > 1 and count <= len(self._csv_preview.tabs())):
-         self._csv_preview.forget(count)
+        self._csv_preview.forget(count)
 
     def draw_preview(self, data : pd.DataFrame, name: str, position: int):
 
@@ -418,7 +414,7 @@ class App(MainWindow):
       
     def switch(self):
         
-        if(self._first_loaded_file.read != None and self._second_loaded_file.read != None and len(self._csv_preview.tabs()) > 2):
+        if(self._first_loaded_file != None and self._second_loaded_file != None and len(self._csv_preview.tabs()) > 2):
 
           tmp = self._first_loaded_file
           self._first_loaded_file = self._second_loaded_file
@@ -443,8 +439,8 @@ class App(MainWindow):
     def reset(self, count = 0):
         
         if (count == 0):
-          self._first_loaded_file.flush
-          self._second_loaded_file.flush
+          self._first_loaded_file = None
+          self._second_loaded_file = None
 
           self._first_file_name.set('Nessun File caricato.')
           self._second_file_name.set('Nessun File caricato.')
@@ -453,36 +449,35 @@ class App(MainWindow):
           self._carica.config(state= tk.ACTIVE)
 
         if (count == 1):
-           self._first_loaded_file.flush
+           self._first_loaded_file = None
            self._first_file_name.set('')
            self.clean_preview()
            self._genera.state(['disabled'])
 
         if (count == 2):
-           self._second_loaded_file.flush
+           self._second_loaded_file = None
            self._second_file_name.set('')
            self.clean_preview(count)
 
     def generate(self):
       try:
-        for fun in self._function_list:
-          if fun().__eq__(self._selected_function.get()):
-               if inspect.ismethod(fun().take_parameters):
-                  fun().take_parameters(self)
-                  if (not self._results.empty):
-                    self._salva.state(['!disabled'])
-                  break
+          for fun in self._function_list:
+            if fun.__eq__(self._selected_function.get()) and inspect.ismethod(fun.take_parameters):
+              fun.take_parameters()
+              if (not self._results.empty):
+                self._salva.state(['!disabled'])
+              break
       except:
-        Error(self, 'Funzione non valida')
-        
+              Error(self, 'Inserisci una funzione valida!')
+    
     def save(self):
 
         files = [('File CSV', '*.csv')]
 
         path = fd.asksaveasfile(    parent = self, 
-                                        filetypes= files,
-                                        title= 'Salva con nome',
-                                        confirmoverwrite= True)
+                                    filetypes= files,
+                                    title= 'Salva con nome',
+                                    confirmoverwrite= True)
         
         if (path != None):
           self._results.to_csv(path, index=False, lineterminator='\n', encoding='utf-8', sep=';')
@@ -513,9 +508,9 @@ class App(MainWindow):
               sep = self._first_sep.get()
 
               self._data1 = pd.read_csv(  self._first_loaded_file,
-                                    dtype= str,
-                                    sep= sep,
-                                    low_memory=False)
+                                          dtype= str,
+                                          sep= sep,
+                                          low_memory=False)
               
               self.draw_preview( self._data1, self._first_file_name.get().split('.')[0], 1)
               self._genera.state(['!disabled'])
@@ -547,9 +542,9 @@ class App(MainWindow):
           sep = self._second_sep.get()
 
           self._data2 = pd.read_csv(  self._second_loaded_file,
-                                dtype= str,
-                                sep= sep,
-                                low_memory= False)
+                                      dtype= str,
+                                      sep= sep,
+                                      low_memory= False)
           
           self.draw_preview(self._data2, self._second_file_name.get().split('.')[0], 2)
           self._genera.state(['!disabled'])
@@ -566,14 +561,17 @@ class App(MainWindow):
       self.load_second()
     
     def create_list(self):
-      
-      for name, obj in inspect.getmembers(sys.modules[functions_types.__name__]):
+      for name, obj in inspect.getmembers(sys.modules[__name__]):
           if inspect.isclass(obj):
-            try:
-              self._function_list_names.append(str(obj().name))
-              self._function_list.append(obj)
-            except:
+            # avoid instanciating known classes:
+            if name in ['Error', 'Function', 'Image', 'ImageTk', 'MainWindow', 'Table' 'Loading', 'Parameters', 'ThreadPool', 'App']:
                continue
+            else:
+              try:
+                self._function_list_names.append(str(obj(self).name))
+                self._function_list.append(obj(self))
+              except:
+                 continue
       
       self._combobox_width = 0
       for name in self._function_list_names:

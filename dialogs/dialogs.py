@@ -26,17 +26,18 @@ class Error(Window):
         err_frame.rowconfigure(1, weight= 1)
         err_frame.columnconfigure(1, weight=1)
 
-        banana =ttk.Label(  err_frame,
-                            text= message,
-                            justify= 'center')
+        err_text =ttk.Label(  err_frame,
+                              text= message,
+                              justify= 'center')
         
-        banana.grid(row= 1, column= 1)
+        err_text.grid(row= 1, column= 1)
         
 # Parameters serves as taking input and initialize functions, usually is modified at will in functions_types
 
 class Parameters(Window):
     def __init__(self, main_window : App, width : int, height : int):
         super().__init__(main_window, 'Inserimento parametri', width, height)
+    # Conviene implementare due frame: uno superiore che contenga il contenuto vero e proprio e uno sottostante che contenga solo il bottone "applica" centrale
 
 class Loading(Window):
     def __init__(self, main_window, width: int, height: int):

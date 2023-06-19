@@ -8,26 +8,11 @@ class Function(metaclass= ABCMeta):
     
     def __init__(self, name: str, main_window : main):
       self._name = name
-      self._data1 = main_window.get_data1()
-      self._data2 = main_window.get_data2()
-      self._result = main_window.get_results()
       self._main_window = main_window
     
     @property
     def name(self):
        return self._name
-
-    @property
-    def data1(self):
-       return self._data1
-    
-    @property
-    def data2(self):
-       return self._data2
-    
-    @property
-    def result(self):
-       return self._data1
     
     @property
     def main_window(self):
@@ -35,8 +20,8 @@ class Function(metaclass= ABCMeta):
     
     @abstractmethod
     def take_parameters(self):
-      # Calls gat_data1 and get_data2
-      pass
+      self._data1 = self.main_window.get_data1()
+      self._data2 = self.main_window.get_data2()
         
     @abstractmethod
     def generate(self):

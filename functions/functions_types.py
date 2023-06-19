@@ -6,8 +6,10 @@ import numpy as np
 import datetime as dt
 from multiprocessing.pool import ThreadPool
 
-# functions_types contains every data-manipulating class, it'll be a huge module probably...
-# TODO: create an API to dinamically import functions from files in a folder 
+# functions_types contains every data-manipulating class
+# We need to use the data getters every time we need data -> Dataframes are not memory safe.
+# TODO: -Create an API to dinamically import functions from files in a folder
+#       -Return a Dataframe with missing/errors
 
 class Multiplesearch(Function):
 # restituire un dataframe con le voci scartate
@@ -16,7 +18,8 @@ class Multiplesearch(Function):
     
     def take_parameters(self):
       # TODO: prelevare l'header, selezionare le colonne chiave
-      Parameters(self.main_window, 300, 300)
+      ciao = Parameters(self.main_window, 300, 300)
+      ttk.Label(ciao, text= 'ciao').grid(column= 0, row= 0) # it works! Parameters can be passed as parent
 
     def generate(self):
       # TODO: Filtrare le colonne chiave, generare il DataFrame utilizzando Loading
@@ -34,14 +37,17 @@ class Columnsselection(Function):
     super().__init__('Selezione colonne', main_window)
 
   def take_parameters(self):
-    print('construct a child parameter to take input')
-    lista_colonne = self.data1.columns.values.tolist()
-    numero_colonne = np.size(lista_colonne)
-    print(lista_colonne)
+    print('Entrato in parameters')
+    super().take_parameters()
+    columns_names = self._data1.columns.values.tolist()
+    columns_number = str (np.size(columns_names))
+
+    print(columns_number)
+
     ciao = Parameters(self.main_window, 300, 300)
     
-    ttk.Label(ciao, text= 'ciao').grid(column= 0, row= 0) # it works!
-        
+    ttk.Label(ciao, text= 'Sono state individuate ' + columns_number + ' colonne').grid(column= 0, row= 0)
+    
   def generate(self):
     print('do something')
 
@@ -51,7 +57,7 @@ class Columnsselection(Function):
   def info(self):
     return super().info()
 
-""" '
+"""
 def leggi_header(elenco: pd.DataFrame):
         lista_colonne = elenco.columns.values.tolist()
         numero_colonne = np.size(lista_colonne)

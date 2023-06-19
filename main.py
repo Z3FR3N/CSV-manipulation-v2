@@ -42,10 +42,13 @@ class App(MainWindow):
         # Always create the grid AFTER widgets
         self.create_grid()
     
-    # "Getter"
+    # Getter
 
-    def get_results(self):
-       return self._results
+    def set_results(self, data: pd.DataFrame):
+       if data.empty == True:
+        Error(self, 'Nessun dato generato')
+       else:
+        self._results = data
     
     def get_data1(self):
         return self._data1

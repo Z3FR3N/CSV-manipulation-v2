@@ -1,5 +1,5 @@
-from dialogs.dialogs import Parameters, Loading, Error, App
 from functions.function import Function
+import tkinter as tk
 from tkinter import ttk
 import pandas as pd
 import numpy as np
@@ -13,13 +13,14 @@ from multiprocessing.pool import ThreadPool
 
 class Multiplesearch(Function):
 # restituire un dataframe con le voci scartate
-    def __init__(self, main_window : App):
+    def __init__(self, main_window):
       super().__init__('Ricerca multipla', main_window)
     
     def take_parameters(self):
+      print('entrato in take parameters')
       # TODO: prelevare l'header, selezionare le colonne chiave
-      ciao = Parameters(self.main_window, 300, 300)
-      ttk.Label(ciao, text= 'ciao').grid(column= 0, row= 0) # it works! Parameters can be passed as parent
+      #ciao = Parameters(self.main_window, 300, 300)
+      #ttk.Label(ciao, text= 'ciao').grid(column= 0, row= 0) # it works! Parameters can be passed as parent
 
     def generate(self):
       # TODO: Filtrare le colonne chiave, generare il DataFrame utilizzando Loading
@@ -33,22 +34,25 @@ class Multiplesearch(Function):
       return super().info()
 
 class Columnsselection(Function):
-  def __init__(self, main_window : App):
+  #select some column to export, CAN ACCEPT ALSO RESULT
+  def __init__(self, main_window):
     super().__init__('Selezione colonne', main_window)
 
   def take_parameters(self):
+
     print('Entrato in parameters')
     super().take_parameters()
     columns_names = self._data1.columns.values.tolist()
     columns_number = str (np.size(columns_names))
-
-    print(columns_number)
-
-    ciao = Parameters(self.main_window, 300, 300)
+    nomi = '\n'.join(columns_names)
+    banana = tk.Canvas( self._window,
+                        text= nomi)
+    scrollbar = ttk.Scrollbar(self._window, orient='vertical', command=banana.yview)
+    banana['yscrollcommand'] = scrollbar.set
+    banana.grid(row=0, column=0) # Creating the Label
+    scrollbar.grid(row=0, column=1, sticky='NS')
     
-    ttk.Label(ciao, text= 'Sono state individuate ' + columns_number + ' colonne').grid(column= 0, row= 0)
-    
-  def generate(self):
+  def generate(self, data : pd.DataFrame):
     print('do something')
 
   def export(self):

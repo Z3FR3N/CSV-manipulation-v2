@@ -1,9 +1,11 @@
 import inspect, sys, io, tkinter as tk, pandas as pd
 # import customtkinter as ctk -> can be useful for restyling
+from tkinter import ttk
 from tkinter import filedialog as fd
+from main_settings import *
 from pandastable import Table # plotting a table from a DataFrame
 from functions.functions_types import *
-from main_settings import *
+from dialogs.dialogs import Error
 
 """
   TODO: - Code optimization through Loop and better Attributes assignment

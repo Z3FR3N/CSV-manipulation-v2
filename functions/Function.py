@@ -1,4 +1,5 @@
 import pandas as pd
+from dialogs.dialogs import Parameters, Loading, Error
 from main import App as main
 from abc import ABCMeta, abstractmethod
 
@@ -22,6 +23,7 @@ class Function(metaclass= ABCMeta):
     def take_parameters(self):
       self._data1 = self.main_window.get_data1()
       self._data2 = self.main_window.get_data2()
+      self._window = Parameters(self.main_window)
         
     @abstractmethod
     def generate(self):

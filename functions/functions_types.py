@@ -1,7 +1,7 @@
 from functions.function import Function
-import tkinter as tk
-from tkinter import ttk
-import pandas as pd
+from tkinter import Canvas
+from tkinter.ttk import Scrollbar, Frame, Button
+from pandas import DataFrame
 import numpy as np
 import datetime as dt
 from multiprocessing.pool import ThreadPool
@@ -19,8 +19,6 @@ class Multiplesearch(Function):
     def take_parameters(self):
       print('entrato in take parameters')
       # TODO: prelevare l'header, selezionare le colonne chiave
-      #ciao = Parameters(self.main_window, 300, 300)
-      #ttk.Label(ciao, text= 'ciao').grid(column= 0, row= 0) # it works! Parameters can be passed as parent
 
     def generate(self):
       # TODO: Filtrare le colonne chiave, generare il DataFrame utilizzando Loading
@@ -34,28 +32,58 @@ class Multiplesearch(Function):
       return super().info()
 
 class Columnsselection(Function):
-  #select some column to export, CAN ACCEPT ALSO RESULT
   def __init__(self, main_window):
     super().__init__('Selezione colonne', main_window)
 
   def take_parameters(self):
-
-    print('Entrato in parameters')
+    # Seleziono il file da prendere in esame se ne è presente più di uno
     super().take_parameters()
-    columns_names = self._data1.columns.values.tolist()
-    columns_number = str (np.size(columns_names))
-    nomi = '\n'.join(columns_names)
-    banana = tk.Canvas( self._window,
-                        text= nomi)
-    scrollbar = ttk.Scrollbar(self._window, orient='vertical', command=banana.yview)
-    banana['yscrollcommand'] = scrollbar.set
-    banana.grid(row=0, column=0) # Creating the Label
-    scrollbar.grid(row=0, column=1, sticky='NS')
+
+    # Creo il Frame principale
+    main_frame = Frame(self._window)
+    main_frame.grid(row= 0, column= 0, sticky='NSEW')
     
-  def generate(self, data : pd.DataFrame):
+    # Creo i due sottoframe: il superiore ospita il contenuto, quello inferiore il bottone 'applica'
+    top_frame =  Frame(main_frame)
+    bottom_frame = Frame(main_frame)
+    main_frame.rowconfigure(0, weight=2)
+    main_frame.rowconfigure(1, weight=1)
+    main_frame.columnconfigure(0, weight=2)
+    top_frame.grid(row=0, column=0)
+    bottom_frame.grid(row=1, column= 0)
+
+    # Creo un Canvas per il top_frame -> CANVAS NON RILEVA CORRETTAMENTE LE DIMENSIONI
+    canvas = Canvas(top_frame, bg='red')
+    canvas.pack(side= 'left', fill='both', expand=1)
+
+    # Creo una scrollbar per il Canvas
+    scrollbar = Scrollbar(top_frame, orient= 'vertical', command= canvas.yview)
+    scrollbar.pack(side='right', fill='y')
+
+    # Configuro il Canvas
+    canvas.configure(yscrollcommand=scrollbar.set)
+    canvas.bind('<Configure>', lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+
+    # Creo un frame interno al Canvas
+    content = Frame(canvas)
+
+    # Aggiungo contenuto all'interno di una finestra del canvas
+    canvas.create_window((0,0), window=content, anchor='nw')
+
+    #for i in range (100):
+    #  Button(content, text=f'Bottone {i}' ).grid(row=i, column=0, padx= 10, pady=10)
+
+    # Seleziono le colonne da esportare
+
+    # Passo a generate
+    apply = Button(bottom_frame, text=('Applica' + self.name))
+    
+  def generate(self, data : DataFrame):
+    # Ritaglio il Dataframe e lo passo ad export
     print('do something')
 
   def export(self):
+    # Passo il Dataframe a Table
     return super().export()
   
   def info(self):

@@ -1,5 +1,4 @@
-import pandas as pd
-from dialogs.dialogs import Parameters, Loading, Error
+from dialogs.dialogs import Parameters, Loading
 from main import App as main
 from abc import ABCMeta, abstractmethod
 
@@ -23,6 +22,8 @@ class Function(metaclass= ABCMeta):
     def take_parameters(self):
       self._data1 = self.main_window.get_data1()
       self._data2 = self.main_window.get_data2()
+      self._first_file_name = self.main_window.first_file_name
+      self._second_file_name = self.main_window.second_file_name
       self._window = Parameters(self.main_window)
         
     @abstractmethod

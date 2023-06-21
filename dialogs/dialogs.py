@@ -1,5 +1,6 @@
 from dialogs.window_setting import Window
-from tkinter import ttk
+from tkinter.ttk import Frame, Label, Button
+from tkinter import Scrollbar, Canvas
 
 class Error(Window):
     # Taking a message to display an error
@@ -9,7 +10,7 @@ class Error(Window):
         self.resizable(False, False) # it's not a huge window, doesn't need much space
 
         #Creating a main frame to place the content in
-        main_err_frame = ttk.Frame(self, relief= 'flat', padding= 5)
+        main_err_frame = Frame(self, relief= 'flat', padding= 5)
 
         self.columnconfigure( 0, weight=1, pad= 5 )  # main_frame
         self.rowconfigure(  0, weight=1, pad= 5 )
@@ -25,7 +26,7 @@ class Error(Window):
         main_err_frame.rowconfigure(1, weight= 1)
         main_err_frame.columnconfigure(1, weight=1)
 
-        err_text =ttk.Label(  main_err_frame,
+        err_text = Label(  main_err_frame,
                               text= message,
                               justify= 'center') # Creating the Label
         
@@ -42,4 +43,7 @@ class Loading(Window):
     def __init__(self, main_window, width: int, height: int):
         super().__init__(main_window, "Elaborazione in corso", 200, 100)
         self.resizable(False, False) # it's not a huge window, doesn't need much space
+
+#class Scrollbar():
+    
 

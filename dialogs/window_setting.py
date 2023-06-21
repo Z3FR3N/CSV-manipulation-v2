@@ -1,8 +1,9 @@
-from main_settings import MainWindow, tk
+from main_settings import MainWindow
+from tkinter import Toplevel
 
 # abstract class that initialize a window object with useful parameters
 
-class Window(tk.Toplevel):
+class Window(Toplevel):
     def __init__(self, main_window : MainWindow, title: str, width: int, height: int):
         super().__init__(main_window, takefocus= True, width= width, height= height)
 
@@ -19,4 +20,3 @@ class Window(tk.Toplevel):
 
         self.geometry('%dx%d+%d+%d' % ( width, height, x, y))
         self.grab_set()
-        self.lift()

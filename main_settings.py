@@ -1,8 +1,9 @@
-from PIL import Image, ImageTk
-import tkinter as tk
+from PIL.Image import open
+from PIL.ImageTk import PhotoImage
+from tkinter import Tk
 
-class MainWindow(tk.Tk):
-    def __init__(self : tk.Tk, title : str,  width : int, height: int, minsize: int, path: str, dim: int):
+class MainWindow(Tk):
+    def __init__(self : Tk, title : str,  width : int, height: int, minsize: int, path: str, dim: int):
         super().__init__()
         
         self.title(title)
@@ -10,6 +11,7 @@ class MainWindow(tk.Tk):
 
         # Width of the screen
         screen_width = self.winfo_screenwidth()
+        
         # Height of the screen
         screen_height = self.winfo_screenheight()
         
@@ -19,7 +21,7 @@ class MainWindow(tk.Tk):
 
         self.geometry('%dx%d+%d+%d' % ( width, height, x, y))
     
-        image = Image.open(path).resize(( dim, dim ))
-        icon = ImageTk.PhotoImage(image)
+        image = open(path).resize(( dim, dim ))
+        icon = PhotoImage(image)
         
         self.iconphoto(True, icon)

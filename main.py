@@ -1,11 +1,15 @@
-import inspect, sys, io, tkinter as tk, pandas as pd
-# import customtkinter as ctk -> can be useful for restyling
-from tkinter import ttk
-from tkinter import filedialog as fd
-from main_settings import *
+from sys import modules
+from io import IOBase
+from inspect import ismethod, getmembers, isclass
+from tkinter import LabelFrame, StringVar
+from pandas import DataFrame, read_csv
+from tkinter.ttk import Frame, Button, Combobox, Radiobutton, Notebook, Label
+from tkinter.filedialog import askopenfile, asksaveasfile
+from main_settings import MainWindow
 from pandastable import Table # plotting a table from a DataFrame
-from functions.functions_types import *
 from dialogs.dialogs import Error
+from functions.functions_types import * # wildcard is necessary, this is a mutable module
+# import customtkinter as ctk -> can be useful for restyling
 
 """
   TODO: - Code optimization through Loop and better Attributes assignment
@@ -17,9 +21,9 @@ from dialogs.dialogs import Error
 """
 
 class App(MainWindow):
-    _data1 = pd.DataFrame()
-    _data2 = pd.DataFrame()
-    _results = pd.DataFrame()
+    _data1 = DataFrame()
+    _data2 = DataFrame()
+    _results = DataFrame()
 
     def __init__(self):
         super().__init__('Manipolazione CSV', 550, 500, 400, "CSV manipulation v2\\ICO.png", 30 )
@@ -27,11 +31,11 @@ class App(MainWindow):
         self._function_list = []
         self._function_list_names = []
         self.create_list()
-        self._first_file_name = tk.StringVar(value= 'Nessun File caricato.')
-        self._second_file_name = tk.StringVar(value= 'Nessun File caricato.')
-        self._first_sep = tk.StringVar(value=" ")
-        self._second_sep = tk.StringVar(value=" ")
-        self._selected_function = tk.StringVar(value=" ")
+        self._first_file_name = StringVar(value= 'Nessun File caricato.')
+        self._second_file_name = StringVar(value= 'Nessun File caricato.')
+        self._first_sep = StringVar(value=" ")
+        self._second_sep = StringVar(value=" ")
+        self._selected_function = StringVar(value=" ")
         self._first_loaded_file = None
         self._second_loaded_file = None
 
@@ -46,7 +50,7 @@ class App(MainWindow):
     
     # Getter
 
-    def set_results(self, data: pd.DataFrame):
+    def set_results(self, data: DataFrame):
        if data.empty == True:
         Error(self, 'Nessun dato generato')
        else:
@@ -58,37 +62,38 @@ class App(MainWindow):
     def get_data2(self):
         return self._data2
 
+    @property
+    def first_file_name(self):
+      return self._first_file_name
+    
+    @property
+    def second_file_name(self):
+      return self._second_file_name
+    
     # METHODS
 
     def create_widgets(self):
 
-        self._main_frame = ttk.Frame( self, 
-                                      relief='flat')
+        self._main_frame = Frame( self, relief='flat')
 
         # Buttons of the main view
 
-        self._reset = ttk.Button( self._main_frame,
-                                  text='Reset',
-                                  command= self.reset)
+        self._reset = Button( self._main_frame, text='Reset', command= self.reset)
         
-        self._inverti = ttk.Button( self._main_frame,
-                                    text='Inverti',
-                                    command= self.switch)
+        self._inverti = Button( self._main_frame, text='Inverti', command= self.switch)
         
-        self._carica = ttk.Button(  self._main_frame,
-                                    text='Carica CSV',
-                                    command= self.load)
+        self._carica = Button( self._main_frame, text='Carica CSV', command= self.load)
         
-        self._salva = ttk.Button( self._main_frame,
+        self._salva = Button( self._main_frame,
                                   text= 'Salva',
                                   command = self.save,
-                                  state=tk.DISABLED)
+                                  state='disabled')
         
-        self._info = ttk.Button(  self._main_frame,
+        self._info = Button( self._main_frame,
                                   text= 'Info',
                                   command= self.info)
         
-        self._genera = ttk.Button(  self._main_frame,
+        self._genera = Button(  self._main_frame,
                                     text= 'Genera',
                                     command= self.generate) # impostare un try-catch
                 
@@ -96,14 +101,14 @@ class App(MainWindow):
 
         # Identify the right function
 
-        self._functions_frame = ttk.Frame(self._main_frame)
+        self._functions_frame = Frame(self._main_frame)
         
-        self._functions_text = ttk.Label( self._functions_frame,
+        self._functions_text = Label( self._functions_frame,
                                           text= "Lista funzioni: ",
                                           justify= 'left',
                                           anchor='center')
 
-        self._functions_cbox = ttk.Combobox(  self._functions_frame, 
+        self._functions_cbox = Combobox(  self._functions_frame, 
                                               textvariable= self._selected_function,
                                               # values: lists of functions available
                                               values= self._function_list_names,
@@ -118,61 +123,61 @@ class App(MainWindow):
 
         # Due sezioni con LabelFrame da riempire con il nome dei file caricati
         
-        self._first_name = tk.LabelFrame(   self._main_frame, 
+        self._first_name = LabelFrame(   self._main_frame, 
                                             text= 'CSV 1',
                                             labelanchor='n',
                                             relief= 'groove')
         
-        self._display_name1 = ttk.Label(  self._first_name, 
+        self._display_name1 = Label(  self._first_name, 
                                           textvariable= self._first_file_name,
                                           justify= 'center',
                                           anchor='center',
                                           padding= 3)
         
-        self._second_name = tk.LabelFrame(  self._main_frame, 
+        self._second_name = LabelFrame(  self._main_frame, 
                                             text='CSV 2',
                                             labelanchor='n',
                                             relief= 'groove')
         
-        self._display_name2 = ttk.Label(  self._second_name, 
+        self._display_name2 = Label(  self._second_name, 
                                           textvariable= self._second_file_name,
                                           justify= 'center',
                                           anchor='center',
                                           padding= 3)
 
-        self._sep_text1 = ttk.Label(  self._first_name, 
+        self._sep_text1 = Label(  self._first_name, 
                                       text= 'Separatore:')
         
-        self._sep_text2 = ttk.Label(  self._second_name, 
+        self._sep_text2 = Label(  self._second_name, 
                                       text= 'Separatore:')
         
-        self._first_sep_dotcomma = ttk.Radiobutton( self._first_name,
+        self._first_sep_dotcomma = Radiobutton( self._first_name,
                                                     text=';',
                                                     variable= self._first_sep,
                                                     value= ';')
         
-        self._load_first = ttk.Button(  self._first_name,
+        self._load_first = Button(  self._first_name,
                                         text= 'Carica CSV 1',
                                         command= self.load_first)
         
-        self._load_second = ttk.Button( self._second_name,
+        self._load_second = Button( self._second_name,
                                         text= 'Carica CSV 2',
                                         command= self.load_second)
         
         # setting default separator
         self._first_sep_dotcomma.invoke()
         
-        self._first_sep_comma = ttk.Radiobutton(  self._first_name,
+        self._first_sep_comma = Radiobutton(  self._first_name,
                                                   text=',',
                                                   variable= self._first_sep,
                                                   value= ',')
                 
-        self._second_sep_dotcomma = ttk.Radiobutton(  self._second_name,
+        self._second_sep_dotcomma = Radiobutton(  self._second_name,
                                                       text=';',
                                                       variable= self._second_sep,
                                                       value= ';')
         
-        self._second_sep_comma = ttk.Radiobutton(   self._second_name,
+        self._second_sep_comma = Radiobutton(   self._second_name,
                                                     text=',',
                                                     variable= self._second_sep,
                                                     value= ',')
@@ -182,7 +187,7 @@ class App(MainWindow):
         
         # Notebook for preview
 
-        self._csv_preview = ttk.Notebook( self._main_frame) 
+        self._csv_preview = Notebook( self._main_frame) 
                                           #width= self. - 20, 
                                           #height= self.height - 150)
 
@@ -377,23 +382,23 @@ class App(MainWindow):
           self._csv_preview.forget(i)
 
       # No Preview
-      self._no_preview = ttk.Frame( self._csv_preview)
-      self._no_preview_loaded = ttk.Label(  self._no_preview, 
+      self._no_preview = Frame( self._csv_preview)
+      self._no_preview_loaded = Label(  self._no_preview, 
                                             text='Nessun file caricato')
       
       self._no_preview_loaded.place(  relx=0.5, 
                                       rely=0.5, 
-                                      anchor=tk.CENTER)
+                                      anchor='center')
       
       self._csv_preview.add(self._no_preview, text= 'No csv')
       
       if (len(self._csv_preview.tabs()) > 1 and count <= len(self._csv_preview.tabs())):
         self._csv_preview.forget(count)
 
-    def draw_preview(self, data : pd.DataFrame, name: str, position: int):
+    def draw_preview(self, data : DataFrame, name: str, position: int):
 
       # DataFrame loaded
-      self._csv = ttk.Frame(  self._csv_preview,
+      self._csv = Frame(  self._csv_preview,
                               relief= 'flat')   
       
       # Populating the frames
@@ -425,7 +430,7 @@ class App(MainWindow):
           self._first_loaded_file = self._second_loaded_file
           self._second_loaded_file = tmp
 
-          tmp = tk.StringVar()
+          tmp = StringVar()
           tmp.set(self._first_file_name.get())
           self._first_file_name.set(self._second_file_name.get())
           self._second_file_name.set(tmp.get())
@@ -451,7 +456,7 @@ class App(MainWindow):
           self._second_file_name.set('Nessun File caricato.')
 
           self.clean_preview()
-          self._carica.config(state= tk.ACTIVE)
+          self._carica.config(state= '!disabled')
 
         if (count == 1):
            self._first_loaded_file = None
@@ -467,7 +472,7 @@ class App(MainWindow):
     def generate(self):
       try:
           for fun in self._function_list:
-            if fun.__eq__(self._selected_function.get()) and inspect.ismethod(fun.take_parameters):
+            if fun.__eq__(self._selected_function.get()) and ismethod(fun.take_parameters):
               fun.take_parameters()
               if (not self._results.empty):
                 self._salva.state(['!disabled'])
@@ -479,7 +484,7 @@ class App(MainWindow):
 
         files = [('File CSV', '*.csv')]
 
-        path = fd.asksaveasfile(    parent = self, 
+        path = asksaveasfile(    parent = self, 
                                     filetypes= files,
                                     title= 'Salva con nome',
                                     confirmoverwrite= True)
@@ -492,11 +497,11 @@ class App(MainWindow):
     def load_first(self):
       files = [('File CSV', '*.csv')]
 
-      self._first_loaded_file = fd.askopenfile( title= 'Carica il primo file',
+      self._first_loaded_file = askopenfile( title= 'Carica il primo file',
                                                 parent= self, 
                                                 filetypes= files )
       
-      if (isinstance(self._first_loaded_file, io.IOBase)):
+      if (isinstance(self._first_loaded_file, IOBase)):
 
             try:
 
@@ -512,7 +517,7 @@ class App(MainWindow):
 
               sep = self._first_sep.get()
 
-              self._data1 = pd.read_csv(  self._first_loaded_file,
+              self._data1 = read_csv(  self._first_loaded_file,
                                           dtype= str,
                                           sep= sep,
                                           low_memory=False)
@@ -529,11 +534,11 @@ class App(MainWindow):
     def load_second(self):
       files = [('File CSV', '*.csv')]
       
-      self._second_loaded_file = fd.askopenfile(  title= 'Carica il secondo file',
-                                                  parent= self, 
-                                                  filetypes= files )
+      self._second_loaded_file = askopenfile(   title= 'Carica il secondo file',
+                                                parent= self, 
+                                                filetypes= files )
       
-      if (isinstance(self._second_loaded_file, io.IOBase)):
+      if (isinstance(self._second_loaded_file, IOBase)):
         # display second filename
         try:
           
@@ -546,7 +551,7 @@ class App(MainWindow):
                     
           sep = self._second_sep.get()
 
-          self._data2 = pd.read_csv(  self._second_loaded_file,
+          self._data2 = read_csv(  self._second_loaded_file,
                                       dtype= str,
                                       sep= sep,
                                       low_memory= False)
@@ -566,8 +571,8 @@ class App(MainWindow):
       self.load_second()
     
     def create_list(self):
-      for name, obj in inspect.getmembers(sys.modules[__name__]):
-          if inspect.isclass(obj):
+      for name, obj in getmembers(modules[__name__]):
+          if isclass(obj):
             # avoid instanciating known classes:
             if name in ['Error', 'Function', 'Image', 'ImageTk', 'MainWindow', 'Table' 'Loading', 'Parameters', 'ThreadPool', 'App']:
                continue

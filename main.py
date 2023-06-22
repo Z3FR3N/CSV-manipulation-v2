@@ -23,11 +23,10 @@ from functions.functions_types import * # wildcard is necessary, this is a mutab
 class App(MainWindow):
     _data1 = DataFrame()
     _data2 = DataFrame()
-    _results = DataFrame()
+    _results = []
 
     def __init__(self):
         super().__init__('Manipolazione CSV', 550, 500, 400, "CSV manipulation v2\\ICO.png", 30 )
-
         self._function_list = []
         self._function_list_names = []
         self.create_list()
@@ -54,7 +53,7 @@ class App(MainWindow):
        if data.empty == True:
         Error(self, 'Nessun dato generato')
        else:
-        self._results = data
+        self._results.append(data)
     
     def get_data1(self):
         return self._data1
@@ -77,26 +76,19 @@ class App(MainWindow):
         self._main_frame = Frame( self, relief='flat')
 
         # Buttons of the main view
-
+        
         self._reset = Button( self._main_frame, text='Reset', command= self.reset)
         
         self._inverti = Button( self._main_frame, text='Inverti', command= self.switch)
         
         self._carica = Button( self._main_frame, text='Carica CSV', command= self.load)
         
-        self._salva = Button( self._main_frame,
-                                  text= 'Salva',
-                                  command = self.save,
-                                  state='disabled')
+        self._salva = Button( self._main_frame, text= 'Salva', command = self.save, state='disabled')
         
-        self._info = Button( self._main_frame,
-                                  text= 'Info',
-                                  command= self.info)
+        self._info = Button( self._main_frame, text= 'Info', command= self.info)
         
-        self._genera = Button(  self._main_frame,
-                                    text= 'Genera',
-                                    command= self.generate) # impostare un try-catch
-                
+        self._genera = Button(  self._main_frame, text= 'Genera', command= self.generate)
+
         # Combobox for selecting the function to launch
 
         # Identify the right function
@@ -104,98 +96,90 @@ class App(MainWindow):
         self._functions_frame = Frame(self._main_frame)
         
         self._functions_text = Label( self._functions_frame,
-                                          text= "Lista funzioni: ",
-                                          justify= 'left',
-                                          anchor='center')
+                                      text= "Lista funzioni: ",
+                                      justify= 'left',
+                                      anchor='center')
 
         self._functions_cbox = Combobox(  self._functions_frame, 
-                                              textvariable= self._selected_function,
-                                              # values: lists of functions available
-                                              values= self._function_list_names,
-                                              width= self._combobox_width)
+                                          textvariable= self._selected_function,
+                                          # values: lists of functions available
+                                          values= self._function_list_names,
+                                          width= self._combobox_width)
         
         self._functions_text.grid(row= 0, column= 0, sticky= ('E'), padx= 5)
         self._functions_cbox.grid(row= 0, column= 1, sticky=('W'))
 
         self._functions_frame.rowconfigure(0, weight=1)
         self._functions_frame.columnconfigure(0, weight= 1)
-        self._functions_frame.columnconfigure(1, weight=2)
+        self._functions_frame.columnconfigure(1, weight=1)
 
         # Due sezioni con LabelFrame da riempire con il nome dei file caricati
         
-        self._first_name = LabelFrame(   self._main_frame, 
-                                            text= 'CSV 1',
-                                            labelanchor='n',
-                                            relief= 'groove')
+        self._first_name = LabelFrame(  self._main_frame, 
+                                        text= 'CSV 1',
+                                        labelanchor='n',
+                                        relief= 'groove')
         
         self._display_name1 = Label(  self._first_name, 
-                                          textvariable= self._first_file_name,
-                                          justify= 'center',
-                                          anchor='center',
-                                          padding= 3)
+                                      textvariable= self._first_file_name,
+                                      justify= 'center',
+                                      anchor='center',
+                                      padding= 3)
         
-        self._second_name = LabelFrame(  self._main_frame, 
-                                            text='CSV 2',
-                                            labelanchor='n',
-                                            relief= 'groove')
+        self._second_name = LabelFrame( self._main_frame, 
+                                        text='CSV 2',
+                                        labelanchor='n',
+                                        relief= 'groove')
         
         self._display_name2 = Label(  self._second_name, 
-                                          textvariable= self._second_file_name,
-                                          justify= 'center',
-                                          anchor='center',
-                                          padding= 3)
+                                      textvariable= self._second_file_name,
+                                      justify= 'center',
+                                      anchor='center',
+                                      padding= 3)
 
-        self._sep_text1 = Label(  self._first_name, 
-                                      text= 'Separatore:')
+        self._sep_text1 = Label(  self._first_name, text= 'Separatore:')
         
-        self._sep_text2 = Label(  self._second_name, 
-                                      text= 'Separatore:')
+        self._sep_text2 = Label(  self._second_name, text= 'Separatore:')
         
         self._first_sep_dotcomma = Radiobutton( self._first_name,
-                                                    text=';',
-                                                    variable= self._first_sep,
-                                                    value= ';')
+                                                text=';',
+                                                variable= self._first_sep,
+                                                value= ';')
         
-        self._load_first = Button(  self._first_name,
-                                        text= 'Carica CSV 1',
-                                        command= self.load_first)
+        self._load_first = Button(  self._first_name, text= 'Carica CSV 1', command= self.load_first)
         
         self._load_second = Button( self._second_name,
-                                        text= 'Carica CSV 2',
-                                        command= self.load_second)
+                                    text= 'Carica CSV 2',
+                                    command= self.load_second)
         
         # setting default separator
         self._first_sep_dotcomma.invoke()
         
         self._first_sep_comma = Radiobutton(  self._first_name,
-                                                  text=',',
-                                                  variable= self._first_sep,
-                                                  value= ',')
+                                              text=',',
+                                              variable= self._first_sep,
+                                              value= ',')
                 
         self._second_sep_dotcomma = Radiobutton(  self._second_name,
-                                                      text=';',
-                                                      variable= self._second_sep,
-                                                      value= ';')
+                                                  text=';',
+                                                  variable= self._second_sep,
+                                                  value= ';')
         
-        self._second_sep_comma = Radiobutton(   self._second_name,
-                                                    text=',',
-                                                    variable= self._second_sep,
-                                                    value= ',')
+        self._second_sep_comma = Radiobutton( self._second_name,
+                                              text=',',
+                                              variable= self._second_sep,
+                                              value= ',')
         
         # setting default separator
         self._second_sep_dotcomma.invoke()
         
         # Notebook for preview
 
-        self._csv_preview = Notebook( self._main_frame) 
-                                          #width= self. - 20, 
-                                          #height= self.height - 150)
+        self._csv_preview = Notebook( self._main_frame)
 
     def create_grid(self):
         
-        self._main_frame.grid(  column=0, 
-                                row=0, 
-                                sticky=('NSEW') )
+        self._main_frame.grid(  column=0, row=0, sticky=('NSEW') )
         
         # Row 1
 
@@ -205,13 +189,9 @@ class App(MainWindow):
                                     sticky=('EW'),
                                     pady= 5 )
 
-        self._info.grid(  column= 0,
-                          row= 0,
-                          pady= 5  )
+        self._info.grid(  column= 0, row= 0, pady= 5  )
 
-        self._genera.grid(  column= 3,
-                            row= 0,
-                            pady= 5  )
+        self._genera.grid(  column= 3, row= 0, pady= 5  )
         
         # Row 2
 
@@ -226,20 +206,13 @@ class App(MainWindow):
         
         # Placing objects inside the first Labelframe
 
-        self._sep_text1.grid( column= 0,
-                              row= 1,
-                              sticky= 'E' )
+        self._sep_text1.grid( column= 0, row= 1, sticky= 'E' )
         
-        self._first_sep_dotcomma.grid(  row= 1, 
-                                        column= 1 )
+        self._first_sep_dotcomma.grid(  row= 1, column= 1 )
         
-        self._first_sep_comma.grid( row= 1,
-                                    column= 2,
-                                    sticky= 'W')
+        self._first_sep_comma.grid( row= 1, column= 2, sticky= 'W')
         
-        self._display_name1.grid( row= 0, 
-                                  column= 0,
-                                  columnspan= 3)
+        self._display_name1.grid( row= 0, column= 0, columnspan= 3)
         
         self._load_first.grid(  column= 0,
                                 row= 2,
@@ -257,25 +230,18 @@ class App(MainWindow):
         
         # Placing objects inside the second Labelframe
         
-        self._sep_text2.grid(   column= 0,
-                                row= 1,
-                                sticky= 'E' )
+        self._sep_text2.grid(   column= 0, row= 1, sticky= 'E' )
         
-        self._second_sep_dotcomma.grid(   row= 1, 
-                                          column= 1 )
+        self._second_sep_dotcomma.grid( row= 1, column= 1 )
         
-        self._second_sep_comma.grid(  row= 1,
-                                      column= 2,
-                                      sticky= 'W')
+        self._second_sep_comma.grid(  row= 1, column= 2, sticky= 'W')
         
         self._load_second.grid( column= 0,
                                 row= 2,
                                 sticky=('NSEW'),
                                 columnspan= 3)
         
-        self._display_name2.grid( row= 0,
-                                  column= 0, 
-                                  columnspan= 3)
+        self._display_name2.grid( row= 0, column= 0, columnspan= 3)
         
         # LabelFrame ready
         
@@ -288,94 +254,55 @@ class App(MainWindow):
         
         # Configure rows and columns to display the labelframe
         
-        self._first_name.rowconfigure(  0, 
-                                        weight= 1,
-                                        pad=2)
+        self._first_name.rowconfigure(  0, weight= 1, pad=2)
         
-        self._first_name.rowconfigure(  1,
-                                        weight= 1,
-                                        pad=2)
+        self._first_name.rowconfigure(  1, weight= 1, pad=2)
 
-        self._first_name.rowconfigure(  2,
-                                        weight= 1,
-                                        pad=2)
+        self._first_name.rowconfigure(  2, weight= 1, pad=2)
 
-        self._first_name.columnconfigure( 0,
-                                          weight= 1)
+        self._first_name.columnconfigure( 0, weight= 1)
 
-        self._first_name.columnconfigure( 1,
-                                          weight= 1)
+        self._first_name.columnconfigure( 1, weight= 1)
 
-        self._first_name.columnconfigure( 2,
-                                          weight= 1)
+        self._first_name.columnconfigure( 2, weight= 1)
 
-        self._second_name.rowconfigure( 0,
-                                        weight= 1,
-                                        pad=2)
+        self._second_name.rowconfigure( 0, weight= 1, pad=2)
         
-        self._second_name.rowconfigure( 1,
-                                        weight= 1,
-                                        pad=2)
+        self._second_name.rowconfigure( 1, weight= 1, pad=2)
         
-        self._second_name.rowconfigure( 2,
-                                        weight= 1,
-                                        pad=2)
+        self._second_name.rowconfigure( 2, weight= 1, pad=2)
         
-        self._second_name.columnconfigure(  0,
-                                            weight= 1)
+        self._second_name.columnconfigure(  0, weight= 1)
         
-        self._second_name.columnconfigure(  1,
-                                            weight= 1)
+        self._second_name.columnconfigure(  1, weight= 1)
         
-        self._second_name.columnconfigure(  2,
-                                            weight= 1)
+        self._second_name.columnconfigure(  2, weight= 1)
 
         # Row 4
 
-        self._reset.grid( column= 0, 
-                          row= 3,
-                          pady= 5)
+        self._reset.grid( column= 0, row= 3, pady= 5)
 
-        self._inverti.grid(   column= 1,
-                              row= 3,
-                              pady= 5 )
+        self._inverti.grid( column= 1, row= 3, pady= 5 )
 
-        self._carica.grid(  column= 2,
-                            row= 3,
-                            pady= 5 )
+        self._carica.grid(  column= 2, row= 3, pady= 5 )
 
-        self._salva.grid(   column= 3,
-                            row= 3,
-                            pady= 5)
+        self._salva.grid(   column= 3, row= 3, pady= 5)
 
         # weights for resizing and to initialize spacing
 
-        self.columnconfigure( 0, 
-                              weight=1,
-                              pad= 5)  # self._main_frame
+        self.columnconfigure( 0, weight=1, pad= 5)  # self._main_frame
         
-        self.rowconfigure(  0, 
-                            weight=1,
-                            pad= 5)     # self._main_frame
+        self.rowconfigure(  0, weight=1, pad= 5)     # self._main_frame
         
-        self._main_frame.columnconfigure( 0, 
-                                          weight=1,
-                                          pad= 3)
+        self._main_frame.columnconfigure( 0, weight=1, pad= 3)
 
-        self._main_frame.columnconfigure( 1, 
-                                          weight=3,
-                                          pad= 3)
+        self._main_frame.columnconfigure( 1, weight=3, pad= 3)
         
-        self._main_frame.columnconfigure( 2, 
-                                          weight=3,
-                                          pad= 3) 
+        self._main_frame.columnconfigure( 2, weight=3, pad= 3) 
         
-        self._main_frame.columnconfigure( 3, 
-                                          weight=1,
-                                          pad= 3)
+        self._main_frame.columnconfigure( 3, weight=1, pad= 3)
         
-        self._main_frame.rowconfigure(  1,
-                                        weight= 5)      
+        self._main_frame.rowconfigure(  1, weight= 5)      
 
     def clean_preview(self, count = 0):
       for i in self._csv_preview.tabs():
@@ -384,7 +311,7 @@ class App(MainWindow):
       # No Preview
       self._no_preview = Frame( self._csv_preview)
       self._no_preview_loaded = Label(  self._no_preview, 
-                                            text='Nessun file caricato')
+                                        text='Nessun file caricato')
       
       self._no_preview_loaded.place(  relx=0.5, 
                                       rely=0.5, 
@@ -395,11 +322,10 @@ class App(MainWindow):
       if (len(self._csv_preview.tabs()) > 1 and count <= len(self._csv_preview.tabs())):
         self._csv_preview.forget(count)
 
-    def draw_preview(self, data : DataFrame, name: str, position: int):
+    def draw_preview(self, data : DataFrame, name: str, position : int):
 
       # DataFrame loaded
-      self._csv = Frame(  self._csv_preview,
-                              relief= 'flat')   
+      self._csv = Frame(  self._csv_preview, relief= 'flat')   
       
       # Populating the frames
       self._table = Table(  self._csv, 
@@ -474,32 +400,33 @@ class App(MainWindow):
           for fun in self._function_list:
             if fun.__eq__(self._selected_function.get()) and ismethod(fun.take_parameters):
               fun.take_parameters()
-              if (not self._results.empty):
+              if (len(self._results) > 0):
                 self._salva.state(['!disabled'])
               break
       except:
               Error(self, 'Inserisci una funzione valida!')
     
     def save(self):
+        name = self._csv_preview.tab(self._csv_preview.select(), "text")
+        if (len(self._results) > 0):
+          files = [('File CSV', '*.csv')]
 
-        files = [('File CSV', '*.csv')]
-
-        path = asksaveasfile(    parent = self, 
-                                    filetypes= files,
-                                    title= 'Salva con nome',
-                                    confirmoverwrite= True)
-        
-        if (path != None):
-          self._results.to_csv(path, index=False, lineterminator='\n', encoding='utf-8', sep=';')
-        else:
-           Error(self, 'Indica un file!')
+          path = asksaveasfile(   parent = self, 
+                                  filetypes= files,
+                                  title= 'Salva con nome',
+                                  confirmoverwrite= True,
+                                  initialfile= name)
+          if (path != None):
+            name.to_csv(path, index=False, lineterminator='\n', encoding='utf-8', sep=';')
+          else:
+             Error(self, 'Indica un file!')
          
     def load_first(self):
       files = [('File CSV', '*.csv')]
 
-      self._first_loaded_file = askopenfile( title= 'Carica il primo file',
-                                                parent= self, 
-                                                filetypes= files )
+      self._first_loaded_file = askopenfile(  title= 'Carica il primo file',
+                                              parent= self, 
+                                              filetypes= files )
       
       if (isinstance(self._first_loaded_file, IOBase)):
 
@@ -517,10 +444,10 @@ class App(MainWindow):
 
               sep = self._first_sep.get()
 
-              self._data1 = read_csv(  self._first_loaded_file,
-                                          dtype= str,
-                                          sep= sep,
-                                          low_memory=False)
+              self._data1 = read_csv( self._first_loaded_file,
+                                      dtype= str,
+                                      sep= sep,
+                                      low_memory=False)
               
               self.draw_preview( self._data1, self._first_file_name.get().split('.')[0], 1)
               self._genera.state(['!disabled'])
@@ -551,10 +478,10 @@ class App(MainWindow):
                     
           sep = self._second_sep.get()
 
-          self._data2 = read_csv(  self._second_loaded_file,
-                                      dtype= str,
-                                      sep= sep,
-                                      low_memory= False)
+          self._data2 = read_csv(   self._second_loaded_file,
+                                    dtype= str,
+                                    sep= sep,
+                                    low_memory= False)
           
           self.draw_preview(self._data2, self._second_file_name.get().split('.')[0], 2)
           self._genera.state(['!disabled'])
@@ -574,7 +501,9 @@ class App(MainWindow):
       for name, obj in getmembers(modules[__name__]):
           if isclass(obj):
             # avoid instanciating known classes:
-            if name in ['Error', 'Function', 'Image', 'ImageTk', 'MainWindow', 'Table' 'Loading', 'Parameters', 'ThreadPool', 'App']:
+            if name in ['Error', 'Function', 'Image', 'ImageTk', 
+                        'MainWindow', 'Table' 'Loading',
+                        'Parameters', 'ThreadPool', 'App']:
                continue
             else:
               try:

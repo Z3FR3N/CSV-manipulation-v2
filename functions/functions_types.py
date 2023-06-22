@@ -1,5 +1,4 @@
-from functions.function import Function
-from tkinter import Canvas
+from functions.function import Function, main
 from tkinter.ttk import Scrollbar, Frame, Button
 from pandas import DataFrame
 import numpy as np
@@ -13,11 +12,12 @@ from multiprocessing.pool import ThreadPool
 
 class Multiplesearch(Function):
 # restituire un dataframe con le voci scartate
-    def __init__(self, main_window):
+    def __init__(self, main_window : main):
       super().__init__('Ricerca multipla', main_window)
     
     def take_parameters(self):
-      print('entrato in take parameters')
+      print(self.name)
+      super().take_parameters()
       # TODO: prelevare l'header, selezionare le colonne chiave
 
     def generate(self):
@@ -32,53 +32,21 @@ class Multiplesearch(Function):
       return super().info()
 
 class Columnsselection(Function):
-  def __init__(self, main_window):
+  def __init__(self, main_window : main):
     super().__init__('Selezione colonne', main_window)
 
   def take_parameters(self):
-    # Seleziono il file da prendere in esame se ne è presente più di uno
     super().take_parameters()
-
-    # Creo il Frame principale
-    main_frame = Frame(self._window)
-    main_frame.grid(row= 0, column= 0, sticky='NSEW')
+    print(self.name)
+    # Seleziono il file da prendere in esame se ne è presente più di uno
     
-    # Creo i due sottoframe: il superiore ospita il contenuto, quello inferiore il bottone 'applica'
-    top_frame =  Frame(main_frame)
-    bottom_frame = Frame(main_frame)
-    main_frame.rowconfigure(0, weight=2)
-    main_frame.rowconfigure(1, weight=1)
-    main_frame.columnconfigure(0, weight=2)
-    top_frame.grid(row=0, column=0)
-    bottom_frame.grid(row=1, column= 0)
-
-    # Creo un Canvas per il top_frame -> CANVAS NON RILEVA CORRETTAMENTE LE DIMENSIONI
-    canvas = Canvas(top_frame, bg='red')
-    canvas.pack(side= 'left', fill='both', expand=1)
-
-    # Creo una scrollbar per il Canvas
-    scrollbar = Scrollbar(top_frame, orient= 'vertical', command= canvas.yview)
-    scrollbar.pack(side='right', fill='y')
-
-    # Configuro il Canvas
-    canvas.configure(yscrollcommand=scrollbar.set)
-    canvas.bind('<Configure>', lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-
-    # Creo un frame interno al Canvas
-    content = Frame(canvas)
-
-    # Aggiungo contenuto all'interno di una finestra del canvas
-    canvas.create_window((0,0), window=content, anchor='nw')
-
-    #for i in range (100):
-    #  Button(content, text=f'Bottone {i}' ).grid(row=i, column=0, padx= 10, pady=10)
+    columns_chosen = list[str]
 
     # Seleziono le colonne da esportare
 
     # Passo a generate
-    apply = Button(bottom_frame, text=('Applica' + self.name))
     
-  def generate(self, data : DataFrame):
+  def generate(self):
     # Ritaglio il Dataframe e lo passo ad export
     print('do something')
 

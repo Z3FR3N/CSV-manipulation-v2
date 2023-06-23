@@ -1,5 +1,7 @@
 from functions.function import Function, main
-from tkinter.ttk import Scrollbar, Frame, Button
+from tkinter import StringVar
+from tkinter.ttk import Combobox, Frame, Button
+from dialogs.dialogs import Parameters
 from pandas import DataFrame
 import numpy as np
 import datetime as dt
@@ -31,18 +33,45 @@ class Multiplesearch(Function):
     def info(self):
       return super().info()
 
-class Columnsselection(Function):
+class Columnsselection(Function, Parameters):
   def __init__(self, main_window : main):
     super().__init__('Selezione colonne', main_window)
 
   def take_parameters(self):
     super().take_parameters()
-    print(self.name)
-    # Seleziono il file da prendere in esame se ne è presente più di uno
+    # self._data1 
+    # self._data2 
+    # self._first_file_name
+    # self._second_file_name
+    # self._window
+
+    # Popolo una lista di candidati che comprenda CSV di input e risultati
+    csv_available = []
+    csv_available.append(self._first_file_name)
+    csv_available.append(self._second_file_name)
+    csv_available.extend(self.main_window.results_names)
+    print(csv_available)
+    # Variabile che indica la scelta
+    self._selected_csv = StringVar()
+
+    # Il primo frame ospita il combobox
+    top_frame = Frame(self._window.content)
+    top_frame.grid(row=0, column=0, sticky='EW')
+    top_frame.columnconfigure(1, weight= 3)
+    top_frame.rowconfigure(0, weight=3)
+
+    # Il secondo cambia la vista in base ai valori
+    bottom_frame = (self._window.content)
+    bottom_frame.grid(row=1, column=0, sticky='EW')
+
+    choices = Combobox( top_frame, 
+                        textvariable= self._selected_csv,
+                        values= csv_available)
     
-    columns_chosen = list[str]
+    choices.grid(column= 1, row=0)
 
     # Seleziono le colonne da esportare
+
 
     # Passo a generate
     

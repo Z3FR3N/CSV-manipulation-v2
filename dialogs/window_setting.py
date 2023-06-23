@@ -20,3 +20,4 @@ class Window(Toplevel):
 
         self.geometry('%dx%d+%d+%d' % ( width, height, x, y))
         self.grab_set()
+        self.focus()

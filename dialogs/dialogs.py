@@ -39,7 +39,7 @@ class Parameters(Window):
         super().__init__(main_window, 'Inserimento parametri', 300, 310)
 
         self.resizable(False, False)
-
+        self.title(function.name)
         main_frame = Frame(self)
         main_frame.grid(row= 0, column= 0, sticky='NSEW')
 
@@ -49,7 +49,7 @@ class Parameters(Window):
         main_frame.rowconfigure(0, weight=2)
         main_frame.rowconfigure(1, weight=1)
         main_frame.columnconfigure(0, weight=2)
-        top_frame.grid(row=0, column=0)
+        top_frame.grid(row=0, column=0, sticky='EW')
         bottom_frame.grid(row=1, column= 0, sticky='EW', pady=3)
 
         # Creo un Canvas per il top_frame -> CANVAS NON RILEVA CORRETTAMENTE LE DIMENSIONI
@@ -67,6 +67,8 @@ class Parameters(Window):
 
         # Creo un frame interno al Canvas
         self._content = Frame(self.canvas)
+        self._content.rowconfigure(0, weight=2)
+        self._content.columnconfigure(0, weight=2)
 
         # Aggiungo contenuto all'interno di una finestra del canvas
         self.canvas.create_window((0,0), window=self._content, anchor='nw')
@@ -83,7 +85,7 @@ class Parameters(Window):
 
     def _on_mousewheel(self, event):
       self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
-    
+
 class Loading(Window):
     # Tell the user to wait
     def __init__(self, main_window, width: int, height: int):

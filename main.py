@@ -27,8 +27,10 @@ class App(MainWindow):
 
     def __init__(self):
         super().__init__('Manipolazione CSV', 550, 500, 400, "CSV manipulation v2\\ICO.png", 30 )
+        
         self._function_list = []
         self._function_list_names = []
+        self._results_names = []
         self.create_list()
         self._first_file_name = StringVar(value= 'Nessun File caricato.')
         self._second_file_name = StringVar(value= 'Nessun File caricato.')
@@ -49,11 +51,12 @@ class App(MainWindow):
     
     # Getter
 
-    def set_results(self, data: DataFrame):
+    def set_results(self, data: DataFrame, name : str):
        if data.empty == True:
         Error(self, 'Nessun dato generato')
        else:
         self._results.append(data)
+        self._results_names.append(str(name))
     
     def get_data1(self):
         return self._data1
@@ -62,12 +65,16 @@ class App(MainWindow):
         return self._data2
 
     @property
+    def results_names(self):
+       return self._results_names
+
+    @property
     def first_file_name(self):
-      return self._first_file_name
+      return self._first_file_name.get()
     
     @property
     def second_file_name(self):
-      return self._second_file_name
+      return self._second_file_name.get()
     
     # METHODS
 
@@ -377,6 +384,7 @@ class App(MainWindow):
         if (count == 0):
           self._first_loaded_file = None
           self._second_loaded_file = None
+          self._results.clear()
 
           self._first_file_name.set('Nessun File caricato.')
           self._second_file_name.set('Nessun File caricato.')
@@ -389,11 +397,13 @@ class App(MainWindow):
            self._first_file_name.set('')
            self.clean_preview()
            self._genera.state(['disabled'])
+           self._results.clear()
 
         if (count == 2):
            self._second_loaded_file = None
            self._second_file_name.set('')
            self.clean_preview(count)
+           self._results.clear()
 
     def generate(self):
       try:

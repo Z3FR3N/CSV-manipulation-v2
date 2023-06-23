@@ -1,4 +1,4 @@
-from dialogs.dialogs import Parameters, Loading
+from dialogs.dialogs import Parameters
 from main import App as main
 from abc import ABCMeta, abstractmethod
 
@@ -24,8 +24,7 @@ class Function(metaclass= ABCMeta):
       self._data2 = self.main_window.get_data2()
       self._first_file_name = self.main_window.first_file_name
       self._second_file_name = self.main_window.second_file_name
-      self._window = Parameters(self.main_window, self) # dirty initalization, but it's mnecessary
-      
+      self._window = Parameters(self._main_window, self)
     @abstractmethod
     def generate(self):
       pass

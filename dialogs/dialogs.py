@@ -40,51 +40,65 @@ class Parameters(Window):
 
         self.resizable(False, False)
         self.title(function.name)
+        self.grid_columnconfigure(0, minsize=300)
+        self.grid_rowconfigure(0, minsize=300)
+
         main_frame = Frame(self)
-        main_frame.grid(row= 0, column= 0, sticky='NSEW')
+        main_frame.grid(column=0, row=0)
+        main_frame.grid_columnconfigure(0, minsize=300, weight=1)
+        main_frame.grid_rowconfigure(0, minsize=275, weight=3)
+        main_frame.grid_rowconfigure(1, weight=1)
+        main_frame.grid_rowconfigure(2, weight=2)
 
         # Creo i due sottoframe: il superiore ospita il contenuto, quello inferiore il bottone 'applica'
-        top_frame =  Frame(main_frame)
-        bottom_frame = Frame(main_frame)
-        main_frame.rowconfigure(0, weight=2)
-        main_frame.rowconfigure(1, weight=1)
-        main_frame.columnconfigure(0, weight=2)
-        top_frame.grid(row=0, column=0, sticky='EW')
-        bottom_frame.grid(row=1, column= 0, sticky='EW', pady=3)
-
-        # Creo un Canvas per il top_frame -> CANVAS NON RILEVA CORRETTAMENTE LE DIMENSIONI
-        self.canvas = Canvas(top_frame, width=(278), highlightthickness=0)
-        self.canvas.pack(side= 'left', fill='both', expand=1)
-        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
-
-        # Creo una scrollbar per il Canvas
-        scrollbar = Scrollbar(top_frame, orient= 'vertical', command= self.canvas.yview)
-        scrollbar.pack(side='right', fill='y')
-
-        # Configuro il Canvas
-        self.canvas.configure(yscrollcommand=scrollbar.set)
-        self.canvas.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
-
-        # Creo un frame interno al Canvas
-        self._content = Frame(self.canvas)
-        self._content.rowconfigure(0, weight=2)
-        self._content.columnconfigure(0, weight=2)
-
-        # Aggiungo contenuto all'interno di una finestra del canvas
-        self.canvas.create_window((0,0), window=self._content, anchor='nw')
-        separator = Separator(bottom_frame, orient='horizontal')
-        separator.pack(fill='x', expand=1)
+        self._content =  Frame(main_frame)
+        self._content.grid(column=0, row=0, sticky='NSEW')
+        self._content.grid_columnconfigure(0, weight=1)
+        self._content.grid_rowconfigure(0, weight=1)
         
+        separator = Separator(main_frame, orient='horizontal')
+        separator.grid(column=0, row=1, sticky='EW')
+
+        bottom_frame = Frame(main_frame)
+        bottom_frame.grid(column=0, row=2, sticky='NSEW')
+        bottom_frame.grid_columnconfigure(0, weight=1)
+        bottom_frame.grid_columnconfigure(2, weight=1)
+
         # Bottone applica il comando predisposto
         apply = Button(bottom_frame, text=('Applica \"' + function.name + '\"'), command=function.generate) # ugly, i agree. But breaks encapsulation but i get circular import error
-        apply.pack(anchor='center', pady= 5)
+        apply.grid(column=1, row=0, pady=5)
+        
+
+        ## Creo un Canvas per il top_frame -> CANVAS NON RILEVA CORRETTAMENTE LE DIMENSIONI
+        #self.canvas = Canvas(top_frame, width=(278), highlightthickness=0)
+        #self.canvas.pack(side= 'left', fill='both', expand=1)
+        #self.canvas.grid_propagate(False)
+        #self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
+#
+        ## Creo una scrollbar per il Canvas
+        #scrollbar = Scrollbar(top_frame, orient= 'vertical', command= self.canvas.yview)
+        #scrollbar.pack(side='right', fill='y')
+#
+        ## Configuro il Canvas
+        #self.canvas.configure(yscrollcommand=scrollbar.set)
+        #self.canvas.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+#
+        ## Creo un frame interno al Canvas
+        #self._content = Frame(self.canvas)
+        #self._content.rowconfigure(0, weight=2)
+        #self._content.columnconfigure(0, weight=2)
+#
+        ## Aggiungo contenuto all'interno di una finestra del canvas
+        #self.canvas.create_window((0,0), window=self._content, anchor='nw')
+        
+        
     
     @property
     def content(self):
       return self._content
 
-    def _on_mousewheel(self, event):
-      self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+    #def _on_mousewheel(self, event):
+    #  self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
 class Loading(Window):
     # Tell the user to wait

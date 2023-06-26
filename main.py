@@ -406,15 +406,15 @@ class App(MainWindow):
            self._results.clear()
 
     def generate(self):
-      try:
+      #try:
           for fun in self._function_list:
             if fun.__eq__(self._selected_function.get()) and ismethod(fun.take_parameters):
               fun.take_parameters()
               if (len(self._results) > 0):
                 self._salva.state(['!disabled'])
               break
-      except:
-              Error(self, 'Inserisci una funzione valida!')
+      #except:
+      #        Error(self, 'Inserisci una funzione valida!')
     
     def save(self):
         name = self._csv_preview.tab(self._csv_preview.select(), "text")

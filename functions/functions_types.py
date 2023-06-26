@@ -1,7 +1,7 @@
 from functions.function import Function, main
-from tkinter import StringVar
-from tkinter.ttk import Combobox, Frame, Button
-from dialogs.dialogs import Parameters
+from tkinter import StringVar, IntVar, Canvas
+from tkinter.ttk import Combobox, Frame, Label, Separator, Button, Checkbutton, Scrollbar
+from dialogs.dialogs import Parameters, Error
 from pandas import DataFrame
 import numpy as np
 import datetime as dt
@@ -46,37 +46,103 @@ class Columnsselection(Function, Parameters):
     # self._window
 
     # Popolo una lista di candidati che comprenda CSV di input e risultati
-    csv_available = []
+    csv_available = list()
     csv_available.append(self._first_file_name)
     csv_available.append(self._second_file_name)
     csv_available.extend(self.main_window.results_names)
-    print(csv_available)
+
+    data_available = list()
+    data_available.append(self._data1)
+    data_available.append(self._data2)
+    data_available.extend(self.main_window._results)
+
+    self._data_map = dict(zip(csv_available, data_available))
+
     # Variabile che indica la scelta
     self._selected_csv = StringVar()
 
-    # Il primo frame ospita il combobox
-    top_frame = Frame(self._window.content)
-    top_frame.grid(row=0, column=0, sticky='EW')
-    top_frame.columnconfigure(1, weight= 3)
-    top_frame.rowconfigure(0, weight=3)
+    top_frame = Frame(self._window.content) # to allocate a label and a Combobox
+    top_frame.grid(column=0, row=0, sticky='NSEW')
+    top_frame.grid_columnconfigure(0, weight=1)
+    top_frame.grid_rowconfigure(0, weight=1)
+    
+    
+    bottom_frame = Frame
+    
+    inner_top_frame = Frame(top_frame)
+    inner_top_frame.grid()
 
-    # Il secondo cambia la vista in base ai valori
-    bottom_frame = (self._window.content)
-    bottom_frame.grid(row=1, column=0, sticky='EW')
+    csv_label = Label(inner_top_frame, text= 'CSV: ')
+    csv_label.grid(column=0, row=0)
 
-    choices = Combobox( top_frame, 
+    choices = Combobox( inner_top_frame, 
                         textvariable= self._selected_csv,
                         values= csv_available)
-    
+        
     choices.grid(column= 1, row=0)
+#
+    #csv_button = Button(inner_top_frame, text='leggi', command= self.read)
+    #csv_button.grid(column=2, row= 0, padx= 5, pady= 5)
+#
+    ## Adding a separator
+#
+    #separatore = Separator(self._window.content, orient='horizontal')
+    #separatore.grid(column=0, row=1, sticky='EW', pady=4)
+#
+    ## Il secondo cambia la vista in base ai valori
+    #self._bottom_frame = (self._window.content)
+    #self._bottom_frame.grid(row=2, column=0, sticky='EW')
 
-    # Seleziono le colonne da esportare
 
+  def read(self):
+    # Prelevo il Dataframe
+    try:
+      csv = self._selected_csv.get()
+      self._columns_list = DataFrame(self._data_map[csv]).columns.values.tolist()
+    except:
+      Error(self.main_window, 'Qualcosa è andato storto')
+
+    self._canvas = Canvas(self._bottom_frame, width=(278), highlightthickness=0)
+    self._canvas.grid(column=0, row=0, sticky='NSEW')
+    self._canvas.bind_all("<MouseWheel>", self._on_mousewheel)
+
+    # Creo una scrollbar per il Canvas
+    scrollbar = Scrollbar(self._bottom_frame, orient= 'vertical', command= self._canvas.yview)
+    scrollbar.grid(row=0, column= 1, sticky='NS')
+
+    # Configuro il Canvas
+    self._canvas.configure(yscrollcommand=scrollbar.set)
+    self._canvas.bind('<Configure>', lambda e: self._canvas.configure(scrollregion=self._canvas.bbox("all")))
+
+    # Creo un frame interno al Canvas
+    content = Frame(self._canvas)
+    content.rowconfigure(0, weight=2)
+    content.columnconfigure(0, weight=2)
+
+    # Aggiungo contenuto all'interno di una finestra del canvas
+    self._canvas.create_window((0,0), window=content, anchor='nw')
+    
+    # Create a list of IntVar as big as column_list
+    self._chosen = []
+    for name in self._columns_list:
+      self._chosen.append(IntVar().set(1))
+
+    # Counter
+    grid_row = 0
+
+    for i in range(len(self._chosen)):
+      check = Checkbutton(content, text = self._columns_list[i], variable = self._chosen[i], onvalue=IntVar(self._chosen[i]).get())
+      check.grid(column= 0, row= grid_row)
+      grid_row+= 1
+    
+    
+    
+    # Visualizzo le colonne da esportare
 
     # Passo a generate
     
-  def generate(self):
-    # Ritaglio il Dataframe e lo passo ad export
+  def generate(self, csv: DataFrame, colums : list):
+    # Ritaglio il Dataframe e ne restituisco uno risultante
     print('do something')
 
   def export(self):
@@ -85,6 +151,9 @@ class Columnsselection(Function, Parameters):
   
   def info(self):
     return super().info()
+  
+  def _on_mousewheel(self, event):
+      self._canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
 """
 def leggi_header(elenco: pd.DataFrame):

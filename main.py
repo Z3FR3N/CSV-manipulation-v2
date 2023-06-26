@@ -26,7 +26,7 @@ class App(MainWindow):
     _results = []
 
     def __init__(self):
-        super().__init__('Manipolazione CSV', 550, 500, 400, "CSV manipulation v2\\ICO.png", 30 )
+        super().__init__('Manipolazione CSV', 550, 500, 400, "ICO.png", 30 )
         
         self._function_list = []
         self._function_list_names = []

@@ -1,7 +1,10 @@
 from functions.function import Function, main
 from tkinter import StringVar, IntVar, Canvas
 from tkinter.ttk import Combobox, Frame, Label, Separator, Button, Checkbutton, Scrollbar
+<<<<<<< HEAD
 from tkinter.constants import *
+=======
+>>>>>>> 0acbba1 (updated function_types)
 from dialogs.dialogs import Parameters, Error
 from pandas import DataFrame
 import numpy as np
@@ -62,6 +65,7 @@ class Columnsselection(Function, Parameters):
     # Variabile che indica la scelta
     self._selected_csv = StringVar()
 
+<<<<<<< HEAD
     self._main_frame = Frame(self._window.content) # to allocate a label and a Combobox
     self._main_frame.grid(column=0, row=0, sticky='NSEW', pady=3)
     self._main_frame.grid_columnconfigure(0, weight=1)
@@ -118,6 +122,41 @@ class Columnsselection(Function, Parameters):
     for i in range(100):
       Button(self._frame.interior, text=f"Button {i}").grid(column=0, row=i)
 
+=======
+    top_frame = Frame(self._window.content) # to allocate a label and a Combobox
+    top_frame.grid(column=0, row=0, sticky='NSEW')
+    top_frame.grid_columnconfigure(0, weight=1)
+    top_frame.grid_rowconfigure(0, weight=1)
+    
+    
+    bottom_frame = Frame
+    
+    inner_top_frame = Frame(top_frame)
+    inner_top_frame.grid()
+
+    csv_label = Label(inner_top_frame, text= 'CSV: ')
+    csv_label.grid(column=0, row=0)
+
+    choices = Combobox( inner_top_frame, 
+                        textvariable= self._selected_csv,
+                        values= csv_available)
+        
+    choices.grid(column= 1, row=0)
+#
+    #csv_button = Button(inner_top_frame, text='leggi', command= self.read)
+    #csv_button.grid(column=2, row= 0, padx= 5, pady= 5)
+#
+    ## Adding a separator
+#
+    #separatore = Separator(self._window.content, orient='horizontal')
+    #separatore.grid(column=0, row=1, sticky='EW', pady=4)
+#
+    ## Il secondo cambia la vista in base ai valori
+    #self._bottom_frame = (self._window.content)
+    #self._bottom_frame.grid(row=2, column=0, sticky='EW')
+
+
+>>>>>>> 0acbba1 (updated function_types)
   def read(self):
     # Prelevo il Dataframe
     try:
@@ -125,6 +164,29 @@ class Columnsselection(Function, Parameters):
       self._columns_list = DataFrame(self._data_map[csv]).columns.values.tolist()
     except:
       Error(self.main_window, 'Qualcosa è andato storto')
+<<<<<<< HEAD
+=======
+
+    self._canvas = Canvas(self._bottom_frame, width=(278), highlightthickness=0)
+    self._canvas.grid(column=0, row=0, sticky='NSEW')
+    self._canvas.bind_all("<MouseWheel>", self._on_mousewheel)
+
+    # Creo una scrollbar per il Canvas
+    scrollbar = Scrollbar(self._bottom_frame, orient= 'vertical', command= self._canvas.yview)
+    scrollbar.grid(row=0, column= 1, sticky='NS')
+
+    # Configuro il Canvas
+    self._canvas.configure(yscrollcommand=scrollbar.set)
+    self._canvas.bind('<Configure>', lambda e: self._canvas.configure(scrollregion=self._canvas.bbox("all")))
+
+    # Creo un frame interno al Canvas
+    content = Frame(self._canvas)
+    content.rowconfigure(0, weight=2)
+    content.columnconfigure(0, weight=2)
+
+    # Aggiungo contenuto all'interno di una finestra del canvas
+    self._canvas.create_window((0,0), window=content, anchor='nw')
+>>>>>>> 0acbba1 (updated function_types)
     
     # Create a list of IntVar as big as column_list
     self._chosen = []
@@ -135,11 +197,20 @@ class Columnsselection(Function, Parameters):
     grid_row = 0
 
     for i in range(len(self._chosen)):
+<<<<<<< HEAD
       check = Checkbutton(self._frame.scrollable_frame, text = self._columns_list[i], variable = self._chosen[i], onvalue=IntVar(self._chosen[i]).get())
       check.grid(column= 0, row= grid_row)
       grid_row+= 1
 
     self._canvas.update_idletasks()
+=======
+      check = Checkbutton(content, text = self._columns_list[i], variable = self._chosen[i], onvalue=IntVar(self._chosen[i]).get())
+      check.grid(column= 0, row= grid_row)
+      grid_row+= 1
+    
+    
+    
+>>>>>>> 0acbba1 (updated function_types)
     # Visualizzo le colonne da esportare
 
     # Passo a generate
@@ -154,6 +225,9 @@ class Columnsselection(Function, Parameters):
   
   def info(self):
     return super().info()
+  
+  def _on_mousewheel(self, event):
+      self._canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
 class ScrollableFrame(Frame):
     def __init__(self, parent, *args, **kw):

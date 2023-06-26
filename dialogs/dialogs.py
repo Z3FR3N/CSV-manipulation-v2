@@ -51,10 +51,44 @@ class Parameters(Window):
         main_frame.grid_rowconfigure(2, weight=2)
 
         # Creo i due sottoframe: il superiore ospita il contenuto, quello inferiore il bottone 'applica'
+<<<<<<< HEAD
         self._content =  Frame(main_frame)
         self._content.grid(column=0, row=0, sticky='NSEW')
         self._content.grid_columnconfigure(0, weight=1)
         self._content.grid_rowconfigure(0, weight=1)
+=======
+        top_frame =  Frame(main_frame)
+        bottom_frame = Frame(main_frame)
+        main_frame.rowconfigure(0, weight=2)
+        main_frame.rowconfigure(1, weight=1)
+        main_frame.columnconfigure(0, weight=2)
+        top_frame.grid(row=0, column=0, sticky='EW')
+        bottom_frame.grid(row=1, column= 0, sticky='EW', pady=3)
+
+        # Creo un Canvas per il top_frame -> CANVAS NON RILEVA CORRETTAMENTE LE DIMENSIONI
+        self.canvas = Canvas(top_frame, width=(278), highlightthickness=0)
+        self.canvas.pack(side= 'left', fill='both', expand=1)
+        self.canvas.grid_propagate(False)
+        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
+
+        # Creo una scrollbar per il Canvas
+        scrollbar = Scrollbar(top_frame, orient= 'vertical', command= self.canvas.yview)
+        scrollbar.pack(side='right', fill='y')
+
+        # Configuro il Canvas
+        self.canvas.configure(yscrollcommand=scrollbar.set)
+        self.canvas.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+
+        # Creo un frame interno al Canvas
+        self._content = Frame(self.canvas)
+        self._content.rowconfigure(0, weight=2)
+        self._content.columnconfigure(0, weight=2)
+
+        # Aggiungo contenuto all'interno di una finestra del canvas
+        self.canvas.create_window((0,0), window=self._content, anchor='nw')
+        separator = Separator(bottom_frame, orient='horizontal')
+        separator.pack(fill='x', expand=1)
+>>>>>>> 0acbba1 (updated function_types)
         
         separator = Separator(main_frame, orient='horizontal')
         separator.grid(column=0, row=1, sticky='EW')

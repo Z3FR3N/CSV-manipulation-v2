@@ -6,7 +6,7 @@ class Error(Window):
     # Taking a message to display an error
     def __init__(self, main_window : MainWindow, message : str):
         super().__init__(main_window, 'Errore', 200, 100)
-        
+        self.grab_set()
         self.resizable(False, False) # it's not a huge window, doesn't need much space
 
         #Creating a main frame to place the content in
@@ -88,8 +88,9 @@ class ScrollableFrame(Frame):
         self.interior = Frame(self.canvas)
         self.interior.bind('<Configure>', self._configure_interior)
         self.canvas.bind('<Configure>', self._configure_canvas)
-        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
         self.interior_id = self.canvas.create_window(0, 0, window=self.interior,anchor=NW)
+        self.interior.bind('<Enter>', self._bound_to_mousewheel)
+        self.interior.bind('<Leave>', self._unbound_to_mousewheel)
 
     def _configure_interior(self, event):
         # Update the scrollbars to match the size of the inner frame.
@@ -103,6 +104,12 @@ class ScrollableFrame(Frame):
         if self.interior.winfo_reqwidth() != self.canvas.winfo_width():
             # Update the inner frame's width to fill the canvas.
             self.canvas.itemconfigure(self.interior_id, width=self.canvas.winfo_width())
+    
+    def _bound_to_mousewheel(self, event):
+      self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
+
+    def _unbound_to_mousewheel(self, event):
+      self.canvas.unbind_all("<MouseWheel>")
     
     def _on_mousewheel(self, event):
       self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")

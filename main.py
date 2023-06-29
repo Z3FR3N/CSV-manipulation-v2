@@ -51,12 +51,23 @@ class App(MainWindow):
     
     # Getter
 
-    def set_results(self, data: DataFrame, name : str):
-       if data.empty == True:
-        Error(self, 'Nessun dato generato')
-       else:
+    def add_results(self, data: DataFrame, name : str):
+      #input validation
+      not_allowed = ['^', '~', '$', '”', '#', '%', '&', '*', ':', '<', '>', '?', '/', '\\', '{', '|', '}' ]
+      if data.empty == True: # more validation on the Dataframe needed!
+        return Error(self, 'Nessun dato generato')
+      if name =='' or name.isspace() or self.first_file_name.rfind(name) != -1 or self.first_file_name.rfind(name) != -1:
+        return Error(self, 'Nome non valido!')
+      if self.results_names.count(name) >= 1:
+        return Error(self, 'Nome già presente!')
+      for item in not_allowed:
+         if name.rfind(item) != -1:
+            return Error(self, 'Il nome NON può contenere uno\ndi questi caratteri:\n' + ' '.join(not_allowed))
+      # adding results:
+      else:
         self._results.append(data)
         self._results_names.append(str(name))
+        self.draw_preview(data, name, len(self._csv_preview.tabs()) + 1)
     
     def get_data1(self):
         return self._data1

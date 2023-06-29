@@ -1,6 +1,6 @@
 from functions.function import Function, main
-from tkinter import StringVar, IntVar, Canvas
-from tkinter.ttk import Combobox, Frame, Label, Separator, Button, Checkbutton, Scrollbar
+from tkinter import W, StringVar, IntVar
+from tkinter.ttk import Combobox, Frame, Label, Separator, Button, Checkbutton, Entry
 from tkinter.constants import NSEW, EW
 from dialogs.dialogs import Parameters, Error, ScrollableFrame
 from pandas import DataFrame
@@ -45,6 +45,7 @@ class Columnsselection(Function, Parameters):
     # self._first_file_name
     # self._second_file_name
     # self._window
+    # self._result
 
     # Popolo una lista di candidati che comprenda CSV di input e risultati
     csv_available = list()
@@ -64,10 +65,11 @@ class Columnsselection(Function, Parameters):
 
     self.main_frame = Frame(self._window.content) # to allocate a label and a Combobox
     self.main_frame.grid_columnconfigure(0, weight=1)
-    self.main_frame.grid_rowconfigure(0, weight=4)
-    self.main_frame.grid_rowconfigure(1, weight=4)
+    self.main_frame.grid_rowconfigure(0, weight=2)
+    self.main_frame.grid_rowconfigure(1, weight=2)
     self.main_frame.grid_rowconfigure(2, weight=1)
-    self.main_frame.grid(column=0, row=0, sticky='NSEW')
+    self.main_frame.grid_rowconfigure(3, weight=2)
+    self.main_frame.grid(column=0, row=0, sticky= NSEW)
     
     self.top_frame = Frame(self.main_frame)
     self.top_frame.grid(column= 0, row= 0)
@@ -82,57 +84,98 @@ class Columnsselection(Function, Parameters):
     self.choices.grid(column= 1, row=0)
 
     self.csv_button = Button(self.top_frame, text='Leggi', command= self.read)
-    self.csv_button.grid(column=2, row= 0, padx= 5, pady= 5)
+    self.csv_button.grid(column=2, row= 0, padx= 5, pady= 2)
+    
+    self.top_frame1 = Frame(self.main_frame)
+    
+    self.csv_label2 = Label(self.top_frame1, text= 'Nome nuovo CSV: ')
+    self.csv_label2.grid(column=0, row=0, sticky=W)
+
+    self.csv_entry = Entry(self.top_frame1, textvariable= self._result_name)
+    self.csv_entry.grid(column=1, row=0)
+
+    self.top_frame1.grid(column=0, row=1, pady= 2)
 
     # Adding a separator
 
     self.separatore = Separator(self.main_frame, orient='horizontal')
-    self.separatore.grid(column=0, row=1, sticky='EW')
+    self.separatore.grid(column=0, row=2, sticky='EW')
    
     # Il secondo cambia la vista in base ai valori
     self.bottom_frame = Frame(self.main_frame)
     self.bottom_frame.grid_columnconfigure(0, weight=1, minsize=300)
     self.bottom_frame.grid_rowconfigure(0, weight= 1)
-    self._window.update_idletasks()
-    self.scrollable = ScrollableFrame(self.bottom_frame, (self._window.winfo_reqheight() - self.top_frame.winfo_reqheight() - self._window.bottom_frame.winfo_reqheight()))
+    self._window.update_idletasks() # to catch the right amount of width and height
+    self.scrollable = ScrollableFrame(self.bottom_frame, (  self._window.winfo_reqheight() - 
+                                                            self.top_frame.winfo_reqheight() - 
+                                                            self.top_frame1.winfo_reqheight() - 
+                                                            self._window.bottom_frame.winfo_reqheight() - 2)) #defining height
 
     self.scrollable.grid(column= 0, row=0, sticky=NSEW)
-    self.bottom_frame.grid(column=0, row=2, sticky=EW)
+    self.bottom_frame.grid(column=0, row=3, sticky=EW)
     
   def read(self):
     # Prelevo il Dataframe
     try:
       csv = self._selected_csv.get()
-      self._columns_list = DataFrame(self._data_map[csv]).columns.values.tolist()
+      self._dataframe_chosen = DataFrame(self._data_map[csv])
+      self._columns_list = self._dataframe_chosen.columns.values.tolist()
     except:
       Error(self.main_window, 'Qualcosa è andato storto')
     
-    # Create a list of IntVar as big as column_list
-    self._chosen = []
-    for name in self._columns_list:
-      self._chosen.append(IntVar().set(1))
-
-    # Counter
-    grid_row = 0
-    self._window.update_idletasks()
-    for i in range(len(self._chosen)):
-      check = Checkbutton(self.scrollable.interior, text = self._columns_list[i], variable = self._chosen[i])
-      check.grid(column= 0, row= grid_row, padx= (((self._window.winfo_reqwidth() - check.winfo_reqwidth() - self.scrollable.vscrollbar.winfo_reqwidth()) / 2)))
-      grid_row+= 1
-
-    # Passo a generate
+    self._chosen = [] # Create a list of IntVar as big as column_list
+    grid_row = 0 # Counter
+    self._window.update_idletasks() # Updating width/heigt flags
     
-  def generate(self, csv: DataFrame, colums : list):
-    # Ritaglio il Dataframe e ne restituisco uno risultante
-    print('do something')
+    for i in range(len(self._columns_list)):
+      self.value = IntVar()
+      self.check = Checkbutton(self.scrollable.interior, onvalue=1, offvalue=0, text = self._columns_list[i], variable = self.value)
+      self._chosen.append(self.value)
+      self.check.grid(column= 0, row= grid_row, padx= (((self._window.winfo_reqwidth() - 
+                                                         self.check.winfo_reqwidth() - 
+                                                         self.scrollable.vscrollbar.winfo_reqwidth()) / 2))) # Defining padding
+      grid_row+= 1
+    
+  def generate(self):# Taking column_list and giving the resulting Dataframe
 
+    self._final_col_names = [] # final list
+
+    # Filtering the columns list
+    for i in range(len(self._chosen)):
+      if self._chosen[i].get() == 1:
+        self._final_col_names.append(str(self._columns_list[i]))
+
+    # Filtering the Dataframe
+    self._result = self._dataframe_chosen[self._final_col_names].copy()
+    return self.export()
+    
   def export(self):
-    # Passo il Dataframe a Table
     return super().export()
   
   def info(self):
     return super().info()
 
+class RenamesColumns(Function):
+# restituire un dataframe con le voci scartate
+    def __init__(self, main_window : main):
+      super().__init__('Rinomina Colonne', main_window)
+    
+    def take_parameters(self):
+      print(self.name)
+      super().take_parameters()
+      # TODO: prelevare l'header, selezionare le colonne chiave
+
+    def generate(self):
+      # TODO: Filtrare le colonne chiave, generare il DataFrame utilizzando Loading
+      print('do something')
+
+    def export(self):
+      # TODO: Utilizzare Columnsselection per scegliere le colonne
+      return super().export()
+
+    def info(self):
+      return super().info()
+    
 """
 def leggi_header(elenco: pd.DataFrame):
         lista_colonne = elenco.columns.values.tolist()

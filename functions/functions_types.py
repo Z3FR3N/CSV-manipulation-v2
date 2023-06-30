@@ -14,14 +14,13 @@ from multiprocessing.pool import ThreadPool
 #       -Return a Dataframe with missing/errors
 
 class Multiplesearch(Function):
-# restituire un dataframe con le voci scartate
+# Restituire un dataframe con le voci scartate
     def __init__(self, main_window : main):
       super().__init__('Ricerca multipla', main_window)
     
     def take_parameters(self):
-      print(self.name)
-      super().take_parameters()
       # TODO: prelevare l'header, selezionare le colonne chiave
+      super().take_parameters()
 
     def generate(self):
       # TODO: Filtrare le colonne chiave, generare il DataFrame utilizzando Loading
@@ -49,14 +48,20 @@ class Columnsselection(Function, Parameters):
 
     # Popolo una lista di candidati che comprenda CSV di input e risultati
     csv_available = list()
-    csv_available.append(self._first_file_name)
-    csv_available.append(self._second_file_name)
-    csv_available.extend(self.main_window.results_names)
+    if self._first_file_name != "Nessun CSV caricato" and (not self._first_file_name.isspace()):
+      csv_available.append(self._first_file_name)
+    if self._second_file_name != 'Nessun CSV caricato' and (not self._second_file_name.isspace()):
+      csv_available.append(self._second_file_name)
+    if len(self.main_window.results_names) > 0:
+      csv_available.extend(self.main_window.results_names)
 
     data_available = list()
-    data_available.append(self._data1)
-    data_available.append(self._data2)
-    data_available.extend(self.main_window._results)
+    if not self._data1.empty:
+      data_available.append(self._data1)
+    if not self._data2.empty:
+      data_available.append(self._data2)
+    if len(self.main_window._results) > 0:
+      data_available.extend(self.main_window._results)
 
     self._data_map = dict(zip(csv_available, data_available))
 
@@ -66,13 +71,13 @@ class Columnsselection(Function, Parameters):
     self.main_frame = Frame(self._window.content) # to allocate a label and a Combobox
     self.main_frame.grid_columnconfigure(0, weight=1)
     self.main_frame.grid_rowconfigure(0, weight=2)
-    self.main_frame.grid_rowconfigure(1, weight=2)
+    self.main_frame.grid_rowconfigure(1, weight=1)
     self.main_frame.grid_rowconfigure(2, weight=1)
-    self.main_frame.grid_rowconfigure(3, weight=2)
+    self.main_frame.grid_rowconfigure(3, weight=1)
+    self.main_frame.grid_rowconfigure(4, weight=2)
     self.main_frame.grid(column=0, row=0, sticky= NSEW)
     
     self.top_frame = Frame(self.main_frame)
-    self.top_frame.grid(column= 0, row= 0)
 
     self.csv_label = Label(self.top_frame, text= 'CSV: ')
     self.csv_label.grid(column=0, row=0)
@@ -85,34 +90,37 @@ class Columnsselection(Function, Parameters):
 
     self.csv_button = Button(self.top_frame, text='Leggi', command= self.read)
     self.csv_button.grid(column=2, row= 0, padx= 5, pady= 2)
+    self.top_frame.grid(column= 0, row= 0)
     
-    self.top_frame1 = Frame(self.main_frame)
-    
-    self.csv_label2 = Label(self.top_frame1, text= 'Nome nuovo CSV: ')
-    self.csv_label2.grid(column=0, row=0, sticky=W)
+    self.bottom_frame = Frame(self.main_frame)
+    self.csv_label2 = Label(self.bottom_frame, text= 'Nome nuovo CSV: ')
+    self.csv_entry = Entry(self.bottom_frame, textvariable= self._result_name)
+    self.bottom_frame.grid(column=0, row=4, pady= 2)
 
-    self.csv_entry = Entry(self.top_frame1, textvariable= self._result_name)
-    self.csv_entry.grid(column=1, row=0)
-
-    self.top_frame1.grid(column=0, row=1, pady= 2)
-
-    # Adding a separator
+    # Adding separators
 
     self.separatore = Separator(self.main_frame, orient='horizontal')
-    self.separatore.grid(column=0, row=2, sticky='EW')
+    self.separatore.grid(column=0, row=1, sticky='EW')
+
+    self.separatore2 = Separator(self.main_frame, orient='horizontal')
+    self.separatore2.grid(column=0, row=3, sticky='EW')
    
     # Il secondo cambia la vista in base ai valori
-    self.bottom_frame = Frame(self.main_frame)
-    self.bottom_frame.grid_columnconfigure(0, weight=1, minsize=300)
-    self.bottom_frame.grid_rowconfigure(0, weight= 1)
+    self.mid_frame = Frame(self.main_frame)
+    self.mid_frame.grid_columnconfigure(0, weight=1, minsize=300)
+    self.mid_frame.grid_rowconfigure(0, weight= 1)
     self._window.update_idletasks() # to catch the right amount of width and height
-    self.scrollable = ScrollableFrame(self.bottom_frame, (  self._window.winfo_reqheight() - 
-                                                            self.top_frame.winfo_reqheight() - 
-                                                            self.top_frame1.winfo_reqheight() - 
-                                                            self._window.bottom_frame.winfo_reqheight() - 2)) #defining height
+    self.scrollable = ScrollableFrame(self.mid_frame, ( self._window.winfo_reqheight() - 
+                                                        self.top_frame.winfo_reqheight() -
+                                                        self.separatore.winfo_reqheight() -
+                                                        self.bottom_frame.winfo_reqheight() - 
+                                                        self._window.bottom_frame.winfo_reqheight() - 20)) #defining height
 
     self.scrollable.grid(column= 0, row=0, sticky=NSEW)
-    self.bottom_frame.grid(column=0, row=3, sticky=EW)
+    self.mid_frame.grid(column=0, row=2, sticky=EW)
+
+    self.csv_label2.grid(column=0, row=0, sticky=W)
+    self.csv_entry.grid(column=1, row=0)
     
   def read(self):
     # Prelevo il Dataframe

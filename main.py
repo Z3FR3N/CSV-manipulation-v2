@@ -32,8 +32,8 @@ class App(MainWindow):
         self._function_list_names = []
         self._results_names = []
         self.create_list()
-        self._first_file_name = StringVar(value= 'Nessun File caricato.')
-        self._second_file_name = StringVar(value= 'Nessun File caricato.')
+        self._first_file_name = StringVar(value= 'Nessun CSV caricato')
+        self._second_file_name = StringVar(value='Nessun CSV caricato')
         self._first_sep = StringVar(value=" ")
         self._second_sep = StringVar(value=" ")
         self._selected_function = StringVar(value=" ")
@@ -68,6 +68,7 @@ class App(MainWindow):
         self._results.append(data)
         self._results_names.append(str(name))
         self.draw_preview(data, name, len(self._csv_preview.tabs()) + 1)
+        self._salva.config(state='!disabled')
     
     def get_data1(self):
         return self._data1
@@ -105,7 +106,7 @@ class App(MainWindow):
         
         self._info = Button( self._main_frame, text= 'Info', command= self.info)
         
-        self._genera = Button(  self._main_frame, text= 'Genera', command= self.generate)
+        self._genera = Button(  self._main_frame, text= 'Genera', command= self.generate, state='disabled')
 
         # Combobox for selecting the function to launch
 
@@ -358,12 +359,12 @@ class App(MainWindow):
 
         self._csv_preview.insert( position, 
                                   self._csv, 
-                                  text = name )
+                                  text = (name + '.csv') )
         
         self._csv_preview.select(self._csv)
 
       else:
-        self._csv_preview.add( self._csv, text= name)  
+        self._csv_preview.add( self._csv, text= (name + '.csv'))  
         self._csv_preview.select(self._csv)
       
     def switch(self):
@@ -397,8 +398,8 @@ class App(MainWindow):
           self._second_loaded_file = None
           self._results.clear()
 
-          self._first_file_name.set('Nessun File caricato.')
-          self._second_file_name.set('Nessun File caricato.')
+          self._first_file_name.set('Nessun CSV caricato')
+          self._second_file_name.set('Nessun CSV caricato')
 
           self.clean_preview()
           self._carica.config(state= '!disabled')
@@ -428,7 +429,9 @@ class App(MainWindow):
       #        Error(self, 'Inserisci una funzione valida!')
     
     def save(self):
+        
         name = self._csv_preview.tab(self._csv_preview.select(), "text")
+
         if (len(self._results) > 0):
           files = [('File CSV', '*.csv')]
 
@@ -438,7 +441,11 @@ class App(MainWindow):
                                   confirmoverwrite= True,
                                   initialfile= name)
           if (path != None):
-            name.to_csv(path, index=False, lineterminator='\n', encoding='utf-8', sep=';')
+            for i in self._results_names:
+               if str(name) == str(i + '.csv'):
+                  data = self._results_names.index(i)
+                  DataFrame(self._results[data]).to_csv(path, index=False, lineterminator='\n', encoding='utf-8', sep=';')
+                  print(DataFrame(self._results[data]).head())
           else:
              Error(self, 'Indica un file!')
          

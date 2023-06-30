@@ -9,16 +9,22 @@ class Window(Toplevel):
 
         self.transient(main_window)
         self.title(title)
-
-        # Width of the main window
-        screen_width = self.winfo_screenwidth()
-
-        # Height of the main window
-        screen_height = self.winfo_screenheight()
-        
-        # Calculate Starting X and Y coordinates for Window
-        x = (screen_width / 2) - (width / 2)
-        y = (screen_height / 2) - (height / 2)
-
-        self.geometry('%dx%d+%d+%d' % ( width, height, x, y))
+        self.width = width
+        self.height = height
+        self.main_window = main_window
+        self.center()
         self.focus()
+    
+    def center(self):
+      
+      main_width = self.main_window.winfo_reqwidth() # Width of the main window
+      main_x = self.main_window.winfo_x() # Main window x
+
+      main_height = self.main_window.winfo_reqheight()# Height of the main window
+      main_y = self.main_window.winfo_y() # Main window y
+
+      # Calculate Starting X and Y coordinates for Window
+      x = (main_x + (main_width / 2)) - (self.width / 2)
+      y = (main_y + (main_height / 2)) - (self.height / 2)
+
+      self.geometry('%dx%d+%d+%d' % ( self.width, self.height, x, y))

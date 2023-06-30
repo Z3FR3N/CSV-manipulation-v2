@@ -59,7 +59,7 @@ class Parameters(Window):
         self.bottom_frame.grid_columnconfigure(2, weight=1)
         self.bottom_frame.grid(column=0, row=2, sticky=NSEW)
         # Bottone applica il comando predisposto
-        self.apply.grid(column=1, row=0, pady=5)
+        self.apply.grid(column=1, row=0, pady=3)
 
 class Loading(Window):
     # Tell the user to wait

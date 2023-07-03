@@ -46,17 +46,18 @@ class Parameters(Window):
         self.content = Frame(self.main_frame)
         self.separator = Separator(self.main_frame, orient='horizontal')
         self.bottom_frame = Frame(self.main_frame)
-        self.apply = Button(self.bottom_frame, text='Applica', command=function.generate) # ugly, i agree. But breaks encapsulation but i get circular import error
-
-        self.main_frame.grid_columnconfigure(0, weight=1)
+        self.apply = Button(self.bottom_frame, text='Applica', command=function.generate) # ugly -> breaks encapsulation but i get circular import error
+        
+        self.main_frame.grid_columnconfigure(0, weight=1, minsize= self.winfo_reqwidth())
         self.main_frame.grid_rowconfigure(0, weight=3, minsize= 260)
         self.main_frame.grid_rowconfigure(1, weight=1)
         self.main_frame.grid_rowconfigure(2, weight=2)
         self.main_frame.grid(column=0, row=0, sticky= NSEW)
         self.content.grid(column=0, row=0, sticky=NSEW)
         self.separator.grid(column=0, row=1, sticky=EW)
-        self.bottom_frame.grid_columnconfigure(0, weight=1)
-        self.bottom_frame.grid_columnconfigure(2, weight=1)
+        self.bottom_frame.grid_columnconfigure(0, weight=2)
+        self.bottom_frame.grid_columnconfigure(1, weight=1)
+        self.bottom_frame.grid_columnconfigure(2, weight=2)
         self.bottom_frame.grid(column=0, row=2, sticky=NSEW)
         # Bottone applica il comando predisposto
         self.apply.grid(column=1, row=0, pady=3)

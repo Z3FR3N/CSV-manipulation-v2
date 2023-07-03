@@ -1,5 +1,5 @@
 from functions.function import Function, main
-from tkinter import W, StringVar, IntVar
+from tkinter import E, W, StringVar, IntVar
 from tkinter.ttk import Combobox, Frame, Label, Separator, Button, Checkbutton, Entry
 from tkinter.constants import NSEW, EW
 from dialogs.dialogs import Parameters, Error, ScrollableFrame
@@ -19,15 +19,73 @@ class Multiplesearch(Function):
       super().__init__('Ricerca multipla', main_window)
     
     def take_parameters(self):
-      # TODO: prelevare l'header, selezionare le colonne chiave
       super().take_parameters()
 
+      #Initializing the main frame, didving in two section
+      self.main_frame.grid_columnconfigure(0, weight=1, minsize= self._window.winfo_reqwidth())
+      self.main_frame.grid_rowconfigure(0, weight= 1) # To allocate labels and Comboboxes
+      self.main_frame.grid_rowconfigure(1, weight= 1) # To allocate two ScrollableFrame 
+
+      # Top Frame: to choose CSVs
+      self.top_frame = Frame(self.main_frame)
+      self.top_frame.grid(column=0, row= 0, pady= 3, sticky=NSEW)
+      self.top_frame.grid_columnconfigure(0, weight= 1)
+      self.top_frame.grid_columnconfigure(1, weight= 1)
+      self.top_frame.grid_columnconfigure(2, weight= 1) 
+      self.top_frame.grid_rowconfigure(0, weight=1, pad= 3)
+      self.top_frame.grid_rowconfigure(1, weight=1, pad= 3)
+      self.top_frame.grid_rowconfigure(2, weight=1)
+
+      # Labels
+      self.label1 = Label(self.top_frame, text= 'CSV 1: ')
+      self.label1.grid(row=0, column= 0, sticky= E)
+
+      self.label2 = Label(self.top_frame, text= 'CSV 2: ')
+      self.label2.grid(row= 1, column= 0, sticky= E)
+
+      # Comboboxes
+      self._selected_csv1 = StringVar()
+      self._selected_csv2 = StringVar()
+
+      self.selection1 = Combobox(self.top_frame, values= self.csv_available, textvariable= self._selected_csv1)
+      self.selection1.grid(row=0, column=1, sticky= W)
+
+      self.selection2 = Combobox(self.top_frame, values= self.csv_available, textvariable= self._selected_csv2)
+      self.selection2.grid(row=1, column=1, sticky=W)
+
+      self.read = Button(self.top_frame, text='Leggi')
+      self.read.grid(row=0, column= 2, rowspan= 2)
+      
+      separator = Separator(self.top_frame)
+      separator.grid(row=2, column=0, columnspan=3, sticky= EW)
+
+      # Bottom Frame: to choose Column key names
+      self.bottom_frame = Frame(self.main_frame)
+      self.bottom_frame.grid(row= 1, column= 0, sticky=NSEW)
+      
+      self.bottom_frame.grid_rowconfigure(0, weight=1)
+      self.bottom_frame.grid_columnconfigure(0, weight=1, minsize= self.main_frame.winfo_reqwidth() /2)
+      self.bottom_frame.grid_columnconfigure(1, weight=1, minsize= self.main_frame.winfo_reqwidth() /2)
+
+      # Two scrollableFrame to display columns
+      self.main_frame.update_idletasks()
+
+      height = self._window.winfo_reqheight() - self.main_frame.winfo_reqheight() - self._window.bottom_frame.winfo_reqheight()
+      
+      self.first_scrollable = ScrollableFrame(self.bottom_frame, height)
+      self.first_scrollable.grid(row= 0, column= 0, sticky= NSEW)
+
+      self.second_scrollable = ScrollableFrame(self.bottom_frame, height)
+      self.second_scrollable.grid(row= 0, column= 1,sticky= NSEW)
+      # Choose the resul's filename
+
     def generate(self):
-      # TODO: Filtrare le colonne chiave, generare il DataFrame utilizzando Loading
+      # Confrontare i valori
       print('do something')
 
     def export(self):
-      # TODO: Utilizzare Columnsselection per scegliere le colonne
+      # Aggiungere ai risultati il CSV generato
+      # Esportare i valori scartati
       return super().export()
 
     def info(self):
@@ -39,43 +97,17 @@ class Columnsselection(Function, Parameters):
 
   def take_parameters(self):
     super().take_parameters()
-    # self._data1 
-    # self._data2 
-    # self._first_file_name
-    # self._second_file_name
-    # self._window
-    # self._result
-
-    # Popolo una lista di candidati che comprenda CSV di input e risultati
-    csv_available = list()
-    if self._first_file_name != "Nessun CSV caricato" and (not self._first_file_name.isspace()):
-      csv_available.append(self._first_file_name)
-    if self._second_file_name != 'Nessun CSV caricato' and (not self._second_file_name.isspace()):
-      csv_available.append(self._second_file_name)
-    if len(self.main_window.results_names) > 0:
-      csv_available.extend(self.main_window.results_names)
-
-    data_available = list()
-    if not self._data1.empty:
-      data_available.append(self._data1)
-    if not self._data2.empty:
-      data_available.append(self._data2)
-    if len(self.main_window._results) > 0:
-      data_available.extend(self.main_window._results)
-
-    self._data_map = dict(zip(csv_available, data_available))
 
     # Variabile che indica la scelta
     self._selected_csv = StringVar()
-
-    self.main_frame = Frame(self._window.content) # to allocate a label and a Combobox
+    
     self.main_frame.grid_columnconfigure(0, weight=1)
     self.main_frame.grid_rowconfigure(0, weight=2)
     self.main_frame.grid_rowconfigure(1, weight=1)
     self.main_frame.grid_rowconfigure(2, weight=1)
     self.main_frame.grid_rowconfigure(3, weight=1)
     self.main_frame.grid_rowconfigure(4, weight=2)
-    self.main_frame.grid(column=0, row=0, sticky= NSEW)
+    
     
     self.top_frame = Frame(self.main_frame)
 
@@ -84,7 +116,7 @@ class Columnsselection(Function, Parameters):
 
     self.choices = Combobox( self.top_frame, 
                               textvariable= self._selected_csv,
-                              values= csv_available)
+                              values= self.csv_available)
         
     self.choices.grid(column= 1, row=0)
 

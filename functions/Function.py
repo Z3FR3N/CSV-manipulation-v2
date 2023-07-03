@@ -1,4 +1,4 @@
-from dialogs.dialogs import Parameters, Error
+from dialogs.dialogs import Parameters, Error, Frame, NSEW
 from main import App as main
 from main import DataFrame, StringVar
 from abc import ABCMeta, abstractmethod
@@ -23,11 +23,43 @@ class Function(metaclass= ABCMeta):
     
     @abstractmethod
     def take_parameters(self):
-      self._data1 = self.main_window.get_data1()
+
+      # Get input Dataframe
+      self._data1 = self.main_window.get_data1() 
       self._data2 = self.main_window.get_data2()
+
+      # Get their names
       self._first_file_name = self.main_window.first_file_name
       self._second_file_name = self.main_window.second_file_name
+
+      # Initialize name list
+      self.csv_available = list()
+      self.data_available = list()
+      
+      # Input checking
+      if self._first_file_name != "Nessun CSV caricato" and (not self._first_file_name.isspace()):
+        self.csv_available.append(self._first_file_name)
+      if self._second_file_name != 'Nessun CSV caricato' and (not self._second_file_name.isspace()):
+        self.csv_available.append(self._second_file_name)
+      if len(self.main_window.results_names) > 0:
+        self.csv_available.extend(self.main_window.results_names)
+
+      # Data validation
+      if not self._data1.empty:
+        self.data_available.append(self._data1)
+      if not self._data2.empty:
+        self.data_available.append(self._data2)
+      if len(self.main_window._results) > 0:
+        self.data_available.extend(self.main_window._results)
+
+      # Associating Data and names
+      self._data_map = dict(zip(self.csv_available, self.data_available))
+      
+      # Window initialization
       self._window = Parameters(self._main_window, self)
+      self._window.update_idletasks()
+      self.main_frame = Frame(self._window.content, height= self._window.content.winfo_reqheight()) # to allocate content dinamically
+      self.main_frame.grid(column=0, row=0, sticky= NSEW)
 
     @abstractmethod
     def generate(self):

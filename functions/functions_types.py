@@ -1,17 +1,21 @@
+from sqlite3 import Row
+from matplotlib.pyplot import grid
 from functions.function import Function, main
-from tkinter import E, W, StringVar, IntVar
+from tkinter import E, W, Radiobutton, StringVar, IntVar
 from tkinter.ttk import Combobox, Frame, Label, Separator, Button, Checkbutton, Entry
 from tkinter.constants import NSEW, EW
 from dialogs.dialogs import Parameters, Error, ScrollableFrame
-from pandas import DataFrame
+from pandas import DataFrame, StringDtype
+from threading import Thread
+from queue import Queue
 import numpy as np
 import datetime as dt
-from multiprocessing.pool import ThreadPool
 
 # functions_types contains every data-manipulating class
 # We need to use the data getters every time we need data -> Dataframes are not memory safe.
 # TODO: -Create an API to dinamically import functions from files in a folder
 #       -Return a Dataframe with missing/errors
+#       - A Function to analize some parameters of the csvs
 
 class Multiplesearch(Function):
 # Restituire un dataframe con le voci scartate
@@ -48,13 +52,20 @@ class Multiplesearch(Function):
       self._selected_csv2 = StringVar()
 
       self.selection1 = Combobox(self.top_frame, values= self.csv_available, textvariable= self._selected_csv1)
+      self.selection1.current(0)
       self.selection1.grid(row=0, column=1, sticky= W)
 
       self.selection2 = Combobox(self.top_frame, values= self.csv_available, textvariable= self._selected_csv2)
+
+      try:
+        self.selection2.current(1)
+      except:
+        self.selection2.current(0)
+
       self.selection2.grid(row=1, column=1, sticky=W)
 
-      self.read = Button(self.top_frame, text='Leggi')
-      self.read.grid(row=0, column= 2, rowspan= 2)
+      self.read_button = Button(self.top_frame, text='Leggi', command= self.read)
+      self.read_button.grid(row=0, column= 2, rowspan= 2)
       
       separator = Separator(self.top_frame)
       separator.grid(row=2, column=0, columnspan=3, sticky= EW)
@@ -77,11 +88,70 @@ class Multiplesearch(Function):
 
       self.second_scrollable = ScrollableFrame(self.bottom_frame, height)
       self.second_scrollable.grid(row= 0, column= 1,sticky= NSEW)
-      # Choose the resul's filename
+
+    def read(self):
+      csv1 = self._selected_csv1.get()
+      csv2 = self._selected_csv2.get()
+      if csv1 == csv2:
+        Error(self.main_window, 'Selezionare file diversi!')
+      else:
+        # variables for Radiobuttons
+        self.column_chosen1 = StringVar()
+        self.column_chosen2 = StringVar()
+        self.column_chosen1.set(" ")
+        self.column_chosen2.set(" ")
+        self.data_chosen1 = DataFrame(self._data_map[csv1]) # selection data from the map
+        self.data_chosen2 = DataFrame(self._data_map[csv2]) # selection data from the map
+        self.column_list1 = self.data_chosen1.columns.tolist()
+        self.column_list2 = self.data_chosen2.columns.tolist()
+        
+        width = 105 # limiting buttons size
+        n_row = 0
+
+        for name in self.column_list1:
+          Radiobutton(self.first_scrollable.interior,wraplength=width, variable=self.column_chosen1,value= name, text= str(name)).grid(row=n_row, column=0 , sticky= W)
+          n_row += 1
+        
+        n_row = 0
+        for name in self.column_list2:
+          Radiobutton(self.second_scrollable.interior, wraplength=width, variable=self.column_chosen2, value= name, text= str(name)).grid(row=n_row, column=0, sticky= W)
+          n_row += 1
 
     def generate(self):
       # Confrontare i valori
-      print('do something')
+      #DTP -> Dato non presente
+      data_array1 = self.data_chosen1.to_numpy(na_value="DTP", dtype=StringDtype)
+      data_array2 = self.data_chosen2.to_numpy(na_value="DNP", dtype=StringDtype)
+      column1 = self.data_chosen1.columns.to_list().index(self.column_chosen1.get()) # numpy arrays takes indexes
+      column2 = self.data_chosen2.columns.to_list().index(self.column_chosen2.get())
+      lista_finale = []
+      lista_scartati = []
+      # con il threading possiamo velocizzare i confronti, ma occorre riordinare la lista 
+      # o il dataframe uscente in base al tipo di dato
+      the_qeue = Queue()
+      
+      def task():
+        for row in data_array1:
+          cell1 = row[column1]
+          lista_scartati.append(cell1)
+          for row2 in data_array2:
+            cell2 = row2[column2]
+            if str(cell1) == str(cell2):
+              lista_finale.append(row2)
+              lista_scartati.remove(cell1)
+        elenco_finale = DataFrame(lista_finale, columns = self.column_list2, dtype=object)
+        the_qeue.put(elenco_finale)
+        the_qeue.put(lista_scartati)
+      
+      thread = Thread(target= task)
+      thread.start()
+      print('iniziato')
+      thread.join()
+      banana = the_qeue.get()
+      banana2 = the_qeue.get()
+      print(banana.head())
+      print(len(banana2))
+      # create and configure a new Thread
 
     def export(self):
       # Aggiungere ai risultati il CSV generato
@@ -217,28 +287,8 @@ class RenamesColumns(Function):
       return super().info()
     
 """
-def leggi_header(elenco: pd.DataFrame):
-        lista_colonne = elenco.columns.values.tolist()
-        numero_colonne = np.size(lista_colonne)
-        nomi_colonne = str()
-        j = 1
-        for i in lista_colonne:
-                nomi_colonne += str(j) + " >> " + i + "\n"
-                j += 1
-        return nomi_colonne, str(numero_colonne)
 
 def filtra(prima_colonna_chiave: str, 
-           seconda_colonna_chiave: str, 
-           primo_elenco: pd.DataFrame, 
-           secondo_elenco: pd.DataFrame):
-        prima_colonna_chiave = int(prima_colonna_chiave) - 1
-        seconda_colonna_chiave = int(seconda_colonna_chiave) - 1
-        prima_lista_colonne = primo_elenco.columns.values.tolist()
-        seconda_lista_colonne = secondo_elenco.columns.values.tolist()
-        nome_prima_colonna_chiave = prima_lista_colonne[prima_colonna_chiave]
-        nome_seconda_colonna_chiave = seconda_lista_colonne[seconda_colonna_chiave]
-        print("Le colonne-chiavi selezionate sono: "    + nome_prima_colonna_chiave 
-                                                        + " e " + nome_seconda_colonna_chiave)
         #DTP -> Dato non presente
         primo_elenco = primo_elenco.to_numpy(na_value="DTP", dtype=pd.StringDtype)
         secondo_elenco = secondo_elenco.to_numpy(na_value="DNP", dtype=pd.StringDtype)

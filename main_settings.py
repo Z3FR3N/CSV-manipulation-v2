@@ -23,3 +23,4 @@ class MainWindow(Tk):
         icon = PhotoImage(image)
         
         self.iconphoto(True, icon)
+        self.resizable(False, False)

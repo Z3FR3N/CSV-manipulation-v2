@@ -6,6 +6,7 @@ class Error(Window):
     # Taking a message to display an error
     def __init__(self, main_window : MainWindow, message : str):
         super().__init__(main_window, 'Errore', 200, 100)
+        self.center()
         self.grab_set()
         self.resizable(False, False) # it's not a huge window, doesn't need much space
 
@@ -40,7 +41,7 @@ class Parameters(Window):
 
         self.resizable(False, False)
         self.title(function.name)
-        
+        self.right()
         self.main_frame = Frame(self)
         # Creo i due sottoframe: il superiore ospita il contenuto, quello inferiore il bottone 'applica'
         self.content = Frame(self.main_frame)
@@ -67,6 +68,7 @@ class Loading(Window):
     def __init__(self, main_window, width: int, height: int):
         super().__init__(main_window, "Elaborazione in corso", 200, 100)
         self.resizable(False, False) # it's not a huge window, doesn't need much space
+        self.center()
 
 class ScrollableFrame(Frame):
     def __init__(self, parent, height, *args, **kw):

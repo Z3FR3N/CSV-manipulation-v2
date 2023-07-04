@@ -1,7 +1,7 @@
 from sys import modules
 from io import IOBase
 from inspect import ismethod, getmembers, isclass
-from tkinter import LabelFrame, StringVar
+from tkinter import LabelFrame, StringVar, Tcl
 from pandas import DataFrame, read_csv
 from tkinter.ttk import Frame, Button, Combobox, Radiobutton, Notebook, Label
 from tkinter.filedialog import askopenfile, asksaveasfile
@@ -548,3 +548,4 @@ class App(MainWindow):
 if __name__ == "__main__":
     app = App()
     app.mainloop()
+    

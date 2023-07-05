@@ -22,9 +22,8 @@ class Function(metaclass= ABCMeta):
        return self._main_window
     
     @abstractmethod
-    def take_parameters(self):
-
-      # Get input Dataframe
+    def take_data(self):
+       # Get input Dataframe
       self._data1 = self.main_window.get_data1() 
       self._data2 = self.main_window.get_data2()
 
@@ -54,11 +53,20 @@ class Function(metaclass= ABCMeta):
 
       # Associating Data and names
       self._data_map = dict(zip(self.csv_available, self.data_available))
+    
+    @abstractmethod
+    def update_data(self):
+      self.take_data()
+    
+    @abstractmethod
+    def take_parameters(self):
+
+      self.take_data()
       
-      # Window initialization
       self._window = Parameters(self._main_window, self)
-      self._window.update_idletasks()
-      self.main_frame = Frame(self._window.content, height= self._window.content.winfo_reqheight()) # to allocate content dinamically
+
+      # Window initialization
+      self.main_frame = Frame(self._window.content) # to allocate content dinamically
       self.main_frame.grid(column=0, row=0, sticky= NSEW)
 
     @abstractmethod

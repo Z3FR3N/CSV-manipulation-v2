@@ -10,6 +10,7 @@ from threading import Thread
 from queue import Queue
 import numpy as np
 import datetime as dt
+import time
 
 # functions_types contains every data-manipulating class
 # We need to use the data getters every time we need data -> Dataframes are not memory safe.
@@ -21,6 +22,30 @@ class Multiplesearch(Function):
 # Restituire un dataframe con le voci scartate
     def __init__(self, main_window : main):
       super().__init__('Ricerca multipla', main_window)
+
+    def update_data(self):
+      super().update_data()
+
+      self.selection1.config(values= self.csv_available)
+      self.selection1.current(0)
+      self._selected_csv1.set(self.csv_available[0])
+
+      self.selection2.config(values= self.csv_available)
+      try:
+        self.selection2.current(1)
+        self._selected_csv2.set(self.csv_available[1])
+      except:
+        self.selection2.current(0)
+        self._selected_csv2.set(self.csv_available[0])
+      
+      for widgets in self.first_scrollable.interior.winfo_children():
+        widgets.destroy()
+      
+      for widgets in self.second_scrollable.interior.winfo_children():
+        widgets.destroy()
+
+    def take_data(self):
+      return super().take_data()
     
     def take_parameters(self):
       super().take_parameters()
@@ -92,8 +117,10 @@ class Multiplesearch(Function):
     def read(self):
       csv1 = self._selected_csv1.get()
       csv2 = self._selected_csv2.get()
+
       if csv1 == csv2:
-        Error(self.main_window, 'Selezionare file diversi!')
+        Error(self._window, 'Selezionare file diversi!')
+
       else:
         # variables for Radiobuttons
         self.column_chosen1 = StringVar()
@@ -106,8 +133,8 @@ class Multiplesearch(Function):
         self.column_list2 = self.data_chosen2.columns.tolist()
         
         width = 105 # limiting buttons size
+        
         n_row = 0
-
         for name in self.column_list1:
           Radiobutton(self.first_scrollable.interior,wraplength=width, variable=self.column_chosen1,value= name, text= str(name)).grid(row=n_row, column=0 , sticky= W)
           n_row += 1
@@ -118,17 +145,17 @@ class Multiplesearch(Function):
           n_row += 1
 
     def generate(self):
-      # Confrontare i valori
-      #DTP -> Dato non presente
-      data_array1 = self.data_chosen1.to_numpy(na_value="DTP", dtype=StringDtype)
+      # Confronting values
+      
+      data_array1 = self.data_chosen1.to_numpy(na_value="DTP", dtype=StringDtype) # DTP -> Dato non presente
       data_array2 = self.data_chosen2.to_numpy(na_value="DNP", dtype=StringDtype)
+
       column1 = self.data_chosen1.columns.to_list().index(self.column_chosen1.get()) # numpy arrays takes indexes
       column2 = self.data_chosen2.columns.to_list().index(self.column_chosen2.get())
+      
       lista_finale = []
       lista_scartati = []
-      # con il threading possiamo velocizzare i confronti, ma occorre riordinare la lista 
-      # o il dataframe uscente in base al tipo di dato
-      the_qeue = Queue()
+      the_qeue = Queue() # FIFO structure, for Thread communication
       
       def task():
         for row in data_array1:
@@ -145,14 +172,17 @@ class Multiplesearch(Function):
       
       thread = Thread(target= task)
       thread.start()
-      print('iniziato')
+      start = time.time()
+      print('iniziato') # Launch Loading
       thread.join()
       banana = the_qeue.get()
       banana2 = the_qeue.get()
       print(banana.head())
       print(len(banana2))
+      end = time.time()
+      print(end - start)
       # create and configure a new Thread
-
+    
     def export(self):
       # Aggiungere ai risultati il CSV generato
       # Esportare i valori scartati
@@ -164,6 +194,12 @@ class Multiplesearch(Function):
 class Columnsselection(Function, Parameters):
   def __init__(self, main_window : main):
     super().__init__('Selezione colonne', main_window)
+
+  def take_data(self):
+      return super().take_data()
+  
+  def update_data(self):
+    return super().update_data()
 
   def take_parameters(self):
     super().take_parameters()
@@ -231,7 +267,7 @@ class Columnsselection(Function, Parameters):
       self._dataframe_chosen = DataFrame(self._data_map[csv])
       self._columns_list = self._dataframe_chosen.columns.values.tolist()
     except:
-      Error(self.main_window, 'Qualcosa è andato storto')
+      Error(self._window, 'Qualcosa è andato storto')
     
     self._chosen = [] # Create a list of IntVar as big as column_list
     grid_row = 0 # Counter
@@ -269,6 +305,12 @@ class RenamesColumns(Function):
 # restituire un dataframe con le voci scartate
     def __init__(self, main_window : main):
       super().__init__('Rinomina Colonne', main_window)
+
+    def update_data(self):
+      return super().update_data()
+    
+    def take_data(self):
+      return super().take_data()
     
     def take_parameters(self):
       print(self.name)
@@ -285,96 +327,3 @@ class RenamesColumns(Function):
 
     def info(self):
       return super().info()
-    
-"""
-
-def filtra(prima_colonna_chiave: str, 
-        #DTP -> Dato non presente
-        primo_elenco = primo_elenco.to_numpy(na_value="DTP", dtype=pd.StringDtype)
-        secondo_elenco = secondo_elenco.to_numpy(na_value="DNP", dtype=pd.StringDtype)
-        lista_finale = []
-        lista_scartati = []
-        # con il threading possiamo velocizzare i confronti, ma occorre riordinare la lista 
-        # o il dataframe uscente in base al tipo di dato
-        def task():
-                for riga in primo_elenco:
-                        cod_fiscale1 = riga[prima_colonna_chiave]
-                        lista_scartati.append(cod_fiscale1)
-                        for riga2 in secondo_elenco:
-                                cod_fiscale2 = riga2[seconda_colonna_chiave]
-                                if str(cod_fiscale1) == str(cod_fiscale2):
-                                        lista_finale.append(riga2)
-                                        lista_scartati.remove(cod_fiscale1)
-        # create and configure the thread pool
-        with ThreadPool() as pool:
-                # issue tasks to the thread pool
-                result = pool.apply_async(task)
-                # wait for the result
-                result.wait()
-        elenco_finale = pd.DataFrame(lista_finale, columns = seconda_lista_colonne, dtype=object)
-        return elenco_finale, lista_scartati
-
-def colonne_da_tenere(elenco: pd.DataFrame):
-        colonne_disponibili = elenco.columns.values.tolist()
-        nomi_colonne = leggi_header(elenco)[0]
-        print("\nSono disponibli le seguenti colonne:\n\n" + nomi_colonne)
-        colonne_tenute = input("Quali colonne tenere? Indicare il numero separato da una virgola." +
-                               "\n(Premere invio per mantenerle tutte)\n> ")
-        if colonne_tenute == "":
-                return colonne_disponibili
-        else:
-                colonne_scelte = colonne_tenute.split(",")
-        nome_colonne_scelte = []
-        for col in colonne_scelte:
-                col = col.strip()
-                nome_colonne_scelte.append(str(colonne_disponibili[int(col) - 1]))
-        return nome_colonne_scelte
-
-def rimuovi_colonne(nomi_colonne:list[str], elenco:pd.DataFrame):
-        colonne_elenco = elenco.columns.values.tolist()
-        colonne_da_rimuovere = set(colonne_elenco).difference(set(nomi_colonne))
-        elenco.drop(columns=list(colonne_da_rimuovere), inplace= True)
-        
-def salva_file(data: pd.DataFrame, lista_scartati:list[str], separatore:str ):
-        root = tk.Tk()
-        # Hide the window
-        root.attributes('-alpha', 0.0)
-        # Always have it on top
-        root.attributes('-topmost', True)
-        percorso = filedialog.asksaveasfile(defaultextension=".csv", filetypes=[("File csv","*.csv")])
-        data.to_csv(percorso, index=False, lineterminator='\n', encoding='utf-8', sep=separatore)
-        # Open our existing CSV file in append mode
-        # Create a file object for this file
-        root.destroy()
-        # Mettere un controllo:
-        #       Se il file esiste -> Aggiunge al file
-        #       Se il file non esiste -> Crea il file
-        with open('Scartati al '+ str(dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")) + '.txt', 'w') as f:
-                f.write('Codici senza corrispondenza:\n'.join(lista_scartati))
-        dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-
-# Not useful ma ormai l'ho scritta
-def modifica_colonne(elenco: pd.DataFrame):
-        print("\n" + leggi_header(elenco)[0])
-        lista_colonne_disponibili = elenco.columns.values.tolist()
-        print('Vuoi convertire dei valori in numeri interi?')
-        while (True):
-                risposta = input('Rispondi con \'si\' o \'no\':\n>')
-                if (risposta.lower() == "si" or risposta.lower() == "sì"):
-                        print("Quali colonne modificare?")
-                        colonne_da_modificare = input("Indica il numero separato da una virgola.\n> ")
-                        if colonne_da_modificare == "":
-                                break
-                        else:
-                                lista_colonne_da_modificare = colonne_da_modificare.split(",")
-                                nome_colonne_scelte = []
-                                for col in lista_colonne_da_modificare:
-                                        col = col.strip()
-                                        nome_colonne_scelte.append(str(lista_colonne_disponibili[int(col) - 1]))
-                                        # convert column "a" of a DataFrame
-                                        for nome in nome_colonne_scelte:
-                                                elenco[nome] = pd.to_numeric(elenco[nome], downcast='integer')
-                        return elenco
-                if risposta.lower() == "no":
-                        break
-        return elenco """

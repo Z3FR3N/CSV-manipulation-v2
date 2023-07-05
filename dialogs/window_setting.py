@@ -12,7 +12,7 @@ class Window(Toplevel):
         self.width = width
         self.height = height
         self.main_window = main_window
-        self.main_window.update_idletasks()
+        #self.main_window.update_idletasks()
         self.focus()
     
     def center(self):

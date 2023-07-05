@@ -1,10 +1,11 @@
+from numpy import column_stack
 from dialogs.window_setting import Window, MainWindow
 from tkinter.ttk import Frame, Label, Button, Separator
 from tkinter import Scrollbar, Canvas, VERTICAL, NS, NSEW, NW, EW, NE
 
 class Error(Window):
     # Taking a message to display an error
-    def __init__(self, main_window : MainWindow, message : str):
+    def __init__(self, main_window, message : str):
         super().__init__(main_window, 'Errore', 200, 100)
         self.center()
         self.grab_set()
@@ -34,20 +35,23 @@ class Error(Window):
         err_text.grid(row= 1, column= 1) # Placing the Label
         
 # Parameters serves as taking input and initialize functions, usually is modified at will in functions_types
+# TODO: adding a button to update the data list
+
 class Parameters(Window):
     # Takes input from the user to apply parameters for functions executions, it's resizable
     def __init__(self, main_window : MainWindow, function):
         super().__init__(main_window, 'Inserimento parametri', 300, 300)
 
+        self.right()
         self.resizable(False, False)
         self.title(function.name)
-        self.right()
         self.main_frame = Frame(self)
         # Creo i due sottoframe: il superiore ospita il contenuto, quello inferiore il bottone 'applica'
         self.content = Frame(self.main_frame)
         self.separator = Separator(self.main_frame, orient='horizontal')
         self.bottom_frame = Frame(self.main_frame)
         self.apply = Button(self.bottom_frame, text='Applica', command=function.generate) # ugly -> breaks encapsulation but i get circular import error
+        self.update_data = Button(self.bottom_frame, text='Aggiorna', command=function.update_data)
         
         self.main_frame.grid_columnconfigure(0, weight=1, minsize= self.winfo_reqwidth())
         self.main_frame.grid_rowconfigure(0, weight=3, minsize= 260)
@@ -58,10 +62,12 @@ class Parameters(Window):
         self.separator.grid(column=0, row=1, sticky=EW)
         self.bottom_frame.grid_columnconfigure(0, weight=2)
         self.bottom_frame.grid_columnconfigure(1, weight=1)
-        self.bottom_frame.grid_columnconfigure(2, weight=2)
+        self.bottom_frame.grid_columnconfigure(2, weight=1)
+        self.bottom_frame.grid_columnconfigure(3, weight=2)
         self.bottom_frame.grid(column=0, row=2, sticky=NSEW)
         # Bottone applica il comando predisposto
         self.apply.grid(column=1, row=0, pady=3)
+        self.update_data.grid(column=2, row=0, pady=3)
 
 class Loading(Window):
     # Tell the user to wait

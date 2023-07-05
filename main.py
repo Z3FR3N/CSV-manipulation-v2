@@ -124,6 +124,7 @@ class App(MainWindow):
                                           # values: lists of functions available
                                           values= self._function_list_names,
                                           width= self._combobox_width)
+        self._functions_cbox.current(0)
         
         self._functions_text.grid(row= 0, column= 0, sticky= ('E'), padx= 5)
         self._functions_cbox.grid(row= 0, column= 1, sticky=('W'))
@@ -403,6 +404,7 @@ class App(MainWindow):
 
           self.clean_preview()
           self._carica.config(state= '!disabled')
+          self._genera.state(['disabled'])
 
         if (count == 1):
            self._first_loaded_file = None
@@ -544,7 +546,7 @@ class App(MainWindow):
       for name in self._function_list_names:
          if len(name) > self._combobox_width:
             self._combobox_width = len(name)
-            
+
 if __name__ == "__main__":
     app = App()
     app.mainloop()

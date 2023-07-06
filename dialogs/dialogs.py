@@ -1,6 +1,7 @@
+from time import sleep
 from numpy import column_stack
-from dialogs.window_setting import Window, MainWindow
-from tkinter.ttk import Frame, Label, Button, Separator
+from dialogs.window_setting import Window
+from tkinter.ttk import Frame, Label, Button, Separator, Progressbar
 from tkinter import Scrollbar, Canvas, VERTICAL, NS, NSEW, NW, EW, NE
 
 class Error(Window):
@@ -39,12 +40,13 @@ class Error(Window):
 
 class Parameters(Window):
     # Takes input from the user to apply parameters for functions executions, it's resizable
-    def __init__(self, main_window : MainWindow, function):
+    def __init__(self, main_window, function):
         super().__init__(main_window, 'Inserimento parametri', 300, 300)
 
         self.right()
         self.resizable(False, False)
         self.title(function.name)
+        self.focus()
         self.main_frame = Frame(self)
         # Creo i due sottoframe: il superiore ospita il contenuto, quello inferiore il bottone 'applica'
         self.content = Frame(self.main_frame)
@@ -71,10 +73,40 @@ class Parameters(Window):
 
 class Loading(Window):
     # Tell the user to wait
-    def __init__(self, main_window, width: int, height: int):
+    def __init__(self, main_window):
         super().__init__(main_window, "Elaborazione in corso", 200, 100)
         self.resizable(False, False) # it's not a huge window, doesn't need much space
         self.center()
+        self.wm_withdraw()
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        
+        self.main_frame = Frame(self)
+        self.main_frame.grid(row=0, column=0, sticky= NSEW)
+        self.main_frame.grid_columnconfigure(0, weight=1)
+        self.main_frame.grid_columnconfigure(2, weight=1)
+        self.main_frame.grid_rowconfigure(0, weight= 1)
+        self.main_frame.grid_rowconfigure(1, weight= 1)
+        self.main_frame.grid_rowconfigure(2, weight= 1)
+        self.main_frame.grid_rowconfigure(3, weight= 1)
+
+        self.message = Label(self.main_frame, text='Attendere')
+        self.message.grid(row=1, column=1, pady=3)
+        self.progressbar = Progressbar(self.main_frame, orient='horizontal', mode='indeterminate')
+        self.progressbar.grid(column=1, row=2, sticky= EW)
+        
+    
+    def start(self):
+        self.wm_deiconify()
+        self.grab_set()
+        self.progressbar.start()
+        
+    def stop(self, message : str):
+        self.progressbar.stop()
+        self.message.config(text=message)
+        sleep(2)
+        self.destroy()
+
 
 class ScrollableFrame(Frame):
     def __init__(self, parent, height, *args, **kw):

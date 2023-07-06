@@ -1,19 +1,16 @@
-from main_settings import MainWindow
 from tkinter import Toplevel
 
 # abstract class that initialize a window object with useful parameters
 
 class Window(Toplevel):
-    def __init__(self, main_window : MainWindow, title: str, width: int, height: int):
+    def __init__(self, main_window, title: str, width: int, height: int):
         super().__init__(main_window, takefocus= True, width= width, height= height)
 
-        self.transient(main_window)
+        self.main_window = main_window
+        self.transient(self.main_window)
         self.title(title)
         self.width = width
         self.height = height
-        self.main_window = main_window
-        #self.main_window.update_idletasks()
-        self.focus()
     
     def center(self):
       

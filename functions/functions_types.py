@@ -1,13 +1,11 @@
-from sqlite3 import Row
-from matplotlib.pyplot import grid
 from functions.function import Function, main
 from tkinter import E, W, Radiobutton, StringVar, IntVar
 from tkinter.ttk import Combobox, Frame, Label, Separator, Button, Checkbutton, Entry
 from tkinter.constants import NSEW, EW
-from dialogs.dialogs import Parameters, Error, ScrollableFrame
+from dialogs.dialogs import Parameters, Error, ScrollableFrame, Loading
 from pandas import DataFrame, StringDtype
 from threading import Thread
-from queue import Queue
+from queue import Empty, Queue
 import numpy as np
 import datetime as dt
 import time
@@ -20,6 +18,33 @@ import time
 
 class Multiplesearch(Function):
 # Restituire un dataframe con le voci scartate
+    class  ConfrontingColumns(Thread): # this does the heavy lifting
+      def __init__(self, queue : Queue, data1 : DataFrame, data2 : DataFrame, column_chosen1 : str, column_chosen2 : str):
+        super().__init__(daemon=True)
+
+        self.queue = queue
+        self.data_array1 = data1.to_numpy(na_value="DTP", dtype=StringDtype) # DTP -> Dato non presente
+        self.data_array2 = data2.to_numpy(na_value="DNP", dtype=StringDtype)
+
+        self.column1_index = data1.columns.to_list().index(column_chosen1) # numpy arrays takes indexes
+        self.column2_list = data2.columns.to_list()
+        self.column2_index = self.column2_list.index(column_chosen2)
+
+        self.match = []
+        self.rejected = []
+      
+      def run(self):
+        for row in self.data_array1:
+          cell1 = row[self.column1_index]
+          self.rejected.append(cell1)
+          for row2 in self.data_array2:
+            cell2 = row2[self.column2_index]
+            if str(cell1) == str(cell2):
+              self.match.append(row2)
+              self.rejected.remove(cell1)
+        result = DataFrame(self.match, columns = self.column2_list, dtype=object)
+        self.queue.put(result)
+        self.queue.put(self.rejected)
     def __init__(self, main_window : main):
       super().__init__('Ricerca multipla', main_window)
 
@@ -29,8 +54,8 @@ class Multiplesearch(Function):
       self.selection1.config(values= self.csv_available)
       self.selection1.current(0)
       self._selected_csv1.set(self.csv_available[0])
-
       self.selection2.config(values= self.csv_available)
+      
       try:
         self.selection2.current(1)
         self._selected_csv2.set(self.csv_available[1])
@@ -144,45 +169,30 @@ class Multiplesearch(Function):
           Radiobutton(self.second_scrollable.interior, wraplength=width, variable=self.column_chosen2, value= name, text= str(name)).grid(row=n_row, column=0, sticky= W)
           n_row += 1
 
+    def monitor(self):
+        """ Monitor the task thread """
+        try:
+            msg = self.queue.get_nowait()
+            # Show result of the task if needed
+            self.loading.stop('Dataframe generato')
+        except Empty:
+            self.loading.after(100, self.monitor)
+    
     def generate(self):
-      # Confronting values
-      
-      data_array1 = self.data_chosen1.to_numpy(na_value="DTP", dtype=StringDtype) # DTP -> Dato non presente
-      data_array2 = self.data_chosen2.to_numpy(na_value="DNP", dtype=StringDtype)
-
-      column1 = self.data_chosen1.columns.to_list().index(self.column_chosen1.get()) # numpy arrays takes indexes
-      column2 = self.data_chosen2.columns.to_list().index(self.column_chosen2.get())
-      
-      lista_finale = []
-      lista_scartati = []
-      the_qeue = Queue() # FIFO structure, for Thread communication
-      
-      def task():
-        for row in data_array1:
-          cell1 = row[column1]
-          lista_scartati.append(cell1)
-          for row2 in data_array2:
-            cell2 = row2[column2]
-            if str(cell1) == str(cell2):
-              lista_finale.append(row2)
-              lista_scartati.remove(cell1)
-        elenco_finale = DataFrame(lista_finale, columns = self.column_list2, dtype=object)
-        the_qeue.put(elenco_finale)
-        the_qeue.put(lista_scartati)
-      
-      thread = Thread(target= task)
-      thread.start()
-      start = time.time()
-      print('iniziato') # Launch Loading
-      thread.join()
-      banana = the_qeue.get()
-      banana2 = the_qeue.get()
+      self.loading = Loading(self.main_window)
+      self.loading.start()
+      self.start_thread()
+      #loading.kill('Dataframe completo')
+      banana = self.queue.get()
+      banana2 = self.queue.get()
       print(banana.head())
       print(len(banana2))
-      end = time.time()
-      print(end - start)
-      # create and configure a new Thread
     
+    def start_thread(self):  # create and configure a new Thread
+      self.queue = Queue() # FIFO structure, for Thread communication
+      thread = ConfrontingColumns(self.queue, self.data_chosen1, self.data_chosen2, self.column_chosen1.get(), self.column_chosen2.get())
+      thread.start()
+      
     def export(self):
       # Aggiungere ai risultati il CSV generato
       # Esportare i valori scartati

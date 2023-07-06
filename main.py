@@ -115,7 +115,7 @@ class App(MainWindow):
         self._functions_frame = Frame(self._main_frame)
         
         self._functions_text = Label( self._functions_frame,
-                                      text= "Lista funzioni: ",
+                                      text= "Funzioni: ",
                                       justify= 'left',
                                       anchor='center')
 
@@ -528,19 +528,16 @@ class App(MainWindow):
       self.load_second()
     
     def create_list(self):
+      skip = ['App', 'Button', 'Checkbutton', 'Combobox', 'DataFrame', 'Entry', 'Error', 'Function', 'Frame', 'IOBase', 'IntVar', 'Label', 'LabelFrame', 'Notebook', 'Queue', 'Radiobutton', 'ScrollableFrame', 'Separator', 'StringDtype', 'StringVar', 'Table', 'Tcl', 'Thread', 'Image', 'ImageTk', 'MainWindow', 'Table', 'Loading', 'Parameters', 'ThreadPool', 'App']
       for name, obj in getmembers(modules[__name__]):
-          if isclass(obj):
-            # avoid instanciating known classes:
-            if name in ['Error', 'Function', 'Image', 'ImageTk', 
-                        'MainWindow', 'Table' 'Loading',
-                        'Parameters', 'ThreadPool', 'App']:
-               continue
-            else:
-              try:
-                self._function_list_names.append(str(obj(self).name))
-                self._function_list.append(obj(self))
-              except:
-                 continue
+              if name in skip: # avoid instanciating known classes:
+                continue
+              if isclass(obj):
+                try:
+                  self._function_list_names.append(str(obj(self).name))
+                  self._function_list.append(obj(self))
+                except:
+                    continue
       
       self._combobox_width = 0
       for name in self._function_list_names:

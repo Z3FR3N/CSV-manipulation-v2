@@ -4,8 +4,8 @@ from tkinter.ttk import Combobox, Frame, Label, Separator, Button, Checkbutton, 
 from tkinter.constants import NSEW, EW
 from dialogs.dialogs import Parameters, Error, ScrollableFrame, Loading
 from pandas import DataFrame, StringDtype
-from threading import Thread
-from queue import Empty, Queue
+from threading import Thread, ThreadError
+from queue import Empty, SimpleQueue
 import numpy as np
 import datetime as dt
 import time
@@ -15,20 +15,20 @@ import time
 # TODO: -Create an API to dinamically import functions from files in a folder
 #       -Return a Dataframe with missing/errors
 #       - A Function to analize some parameters of the csvs
-
-class Multiplesearch(Function):
-# Restituire un dataframe con le voci scartate
-    class  ConfrontingColumns(Thread): # this does the heavy lifting
-      def __init__(self, queue : Queue, data1 : DataFrame, data2 : DataFrame, column_chosen1 : str, column_chosen2 : str):
+class  ConfrontingColumns(Thread): # this does the heavy lifting
+      def __init__(self, queue : SimpleQueue):
         super().__init__(daemon=True)
-
+        
         self.queue = queue
-        self.data_array1 = data1.to_numpy(na_value="DTP", dtype=StringDtype) # DTP -> Dato non presente
-        self.data_array2 = data2.to_numpy(na_value="DNP", dtype=StringDtype)
 
-        self.column1_index = data1.columns.to_list().index(column_chosen1) # numpy arrays takes indexes
-        self.column2_list = data2.columns.to_list()
-        self.column2_index = self.column2_list.index(column_chosen2)
+        try:
+          self.column2_index = self.queue.get()
+          self.column2_list = self.queue.get()
+          self.column1_index = self.queue.get()
+          self.data_array2 = self.queue.get()
+          self.data_array1 = self.queue.get()
+        except Empty:
+          raise ThreadError
 
         self.match = []
         self.rejected = []
@@ -42,9 +42,13 @@ class Multiplesearch(Function):
             if str(cell1) == str(cell2):
               self.match.append(row2)
               self.rejected.remove(cell1)
-        result = DataFrame(self.match, columns = self.column2_list, dtype=object)
-        self.queue.put(result)
+        self.result = DataFrame(self.match, columns = self.column2_list, dtype=object)
+        
+        self.queue.put(self.result)
         self.queue.put(self.rejected)
+
+class Multiplesearch(Function):
+# Restituire un dataframe con le voci scartate                    
     def __init__(self, main_window : main):
       super().__init__('Ricerca multipla', main_window)
 
@@ -170,29 +174,31 @@ class Multiplesearch(Function):
           n_row += 1
 
     def monitor(self):
-        """ Monitor the task thread """
-        try:
-            msg = self.queue.get_nowait()
-            # Show result of the task if needed
-            self.loading.stop('Dataframe generato')
-        except Empty:
-            self.loading.after(100, self.monitor)
+      """ Monitor the task thread """
+      try:
+        msg = self.queue.get_nowait()
+        # Show result of the task if needed
+        self.loading.stop('Dataframe generato')
+      except Empty:
+        self.main_window.after(100, self.monitor)
     
     def generate(self):
       self.loading = Loading(self.main_window)
       self.loading.start()
-      self.start_thread()
-      #loading.kill('Dataframe completo')
+      self.queue = SimpleQueue() # FIFO structure, for Thread communication
+      self.queue.put(self.column_list2.index(self.column_chosen2.get()))
+      self.queue.put(self.column_list2)
+      self.queue.put(self.column_list1.index(self.column_chosen1.get()))
+      self.queue.put(self.data_chosen2.to_numpy(na_value="DTP", dtype=StringDtype))
+      self.queue.put(self.data_chosen1.to_numpy(na_value="DTP", dtype=StringDtype))
+      thread = ConfrontingColumns(self.queue)
+      thread.start()
+      self.main_window.after(100, self.monitor)
       banana = self.queue.get()
       banana2 = self.queue.get()
       print(banana.head())
       print(len(banana2))
-    
-    def start_thread(self):  # create and configure a new Thread
-      self.queue = Queue() # FIFO structure, for Thread communication
-      thread = ConfrontingColumns(self.queue, self.data_chosen1, self.data_chosen2, self.column_chosen1.get(), self.column_chosen2.get())
-      thread.start()
-      
+          
     def export(self):
       # Aggiungere ai risultati il CSV generato
       # Esportare i valori scartati

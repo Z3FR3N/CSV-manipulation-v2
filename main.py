@@ -39,7 +39,6 @@ class App(MainWindow):
         self._selected_function = StringVar(value=" ")
         self._first_loaded_file = None
         self._second_loaded_file = None
-
         # Adding interface's elements, most complex ones with dedicated method
         self.create_widgets()
 

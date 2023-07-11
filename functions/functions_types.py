@@ -1,10 +1,10 @@
 from functions.function import Function, main
-from tkinter import E, W, Radiobutton, StringVar, IntVar
+from tkinter import Radiobutton, StringVar, IntVar
 from tkinter.ttk import Combobox, Frame, Label, Separator, Button, Checkbutton, Entry
-from tkinter.constants import NSEW, EW
-from dialogs.dialogs import Parameters, Error, ScrollableFrame, Loading
+from tkinter.constants import NSEW, EW, E, W
+from dialogs.dialogs import Parameters, Error, ScrollableFrame
 from pandas import DataFrame, StringDtype
-from threading import Thread, ThreadError
+from threading import Thread
 from queue import Empty, SimpleQueue
 import numpy as np
 import datetime as dt
@@ -15,25 +15,30 @@ import time
 # TODO: -Create an API to dinamically import functions from files in a folder
 #       -Return a Dataframe with missing/errors
 #       - A Function to analize some parameters of the csvs
+
 class  ConfrontingColumns(Thread): # this does the heavy lifting
       def __init__(self, queue : SimpleQueue):
         super().__init__(daemon=True)
         
         self.queue = queue
-
+        
         try:
           self.column2_index = self.queue.get()
           self.column2_list = self.queue.get()
           self.column1_index = self.queue.get()
           self.data_array2 = self.queue.get()
           self.data_array1 = self.queue.get()
+          print('queue inizializzata')
         except Empty:
-          raise ThreadError
+          print('Queue non inizializzata')
 
         self.match = []
         self.rejected = []
       
+      # we can calculate the amount of comparisons and communicate to the mainloop throught the queue: https://www.youtube.com/watch?v=ghSDvtVJPck
+      
       def run(self):
+        print('entrato in run')
         for row in self.data_array1:
           cell1 = row[self.column1_index]
           self.rejected.append(cell1)
@@ -42,10 +47,11 @@ class  ConfrontingColumns(Thread): # this does the heavy lifting
             if str(cell1) == str(cell2):
               self.match.append(row2)
               self.rejected.remove(cell1)
+        print('fatto')
         self.result = DataFrame(self.match, columns = self.column2_list, dtype=object)
         
-        self.queue.put(self.result)
         self.queue.put(self.rejected)
+        self.queue.put(self.result)
 
 class Multiplesearch(Function):
 # Restituire un dataframe con le voci scartate                    
@@ -172,32 +178,22 @@ class Multiplesearch(Function):
         for name in self.column_list2:
           Radiobutton(self.second_scrollable.interior, wraplength=width, variable=self.column_chosen2, value= name, text= str(name)).grid(row=n_row, column=0, sticky= W)
           n_row += 1
-
-    def monitor(self):
-      """ Monitor the task thread """
-      try:
-        msg = self.queue.get_nowait()
-        # Show result of the task if needed
-        self.loading.stop('Dataframe generato')
-      except Empty:
-        self.main_window.after(100, self.monitor)
     
     def generate(self):
-      self.loading = Loading(self.main_window)
-      self.loading.start()
       self.queue = SimpleQueue() # FIFO structure, for Thread communication
       self.queue.put(self.column_list2.index(self.column_chosen2.get()))
       self.queue.put(self.column_list2)
       self.queue.put(self.column_list1.index(self.column_chosen1.get()))
       self.queue.put(self.data_chosen2.to_numpy(na_value="DTP", dtype=StringDtype))
       self.queue.put(self.data_chosen1.to_numpy(na_value="DTP", dtype=StringDtype))
-      thread = ConfrontingColumns(self.queue)
-      thread.start()
-      self.main_window.after(100, self.monitor)
+      # generate an event in the mainloop to display Loading window
+      self._window.event_generate("<<CheckQueue>>")
+      self.thread = ConfrontingColumns(self.queue)
+      self.thread.start()
       banana = self.queue.get()
       banana2 = self.queue.get()
-      print(banana.head())
-      print(len(banana2))
+      print(banana2.head())
+      print(len(banana))
           
     def export(self):
       # Aggiungere ai risultati il CSV generato

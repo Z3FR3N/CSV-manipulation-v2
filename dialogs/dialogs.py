@@ -90,7 +90,7 @@ class Loading(Window):
         self.main_frame.grid_rowconfigure(2, weight= 1)
         self.main_frame.grid_rowconfigure(3, weight= 1)
 
-        self.message = Label(self.main_frame, text='Attendere')
+        self.message = Label(self.main_frame, text='Attendere' )
         self.message.grid(row=1, column=1, pady=3)
         self.progressbar = Progressbar(self.main_frame, orient='horizontal', mode='indeterminate')
         self.progressbar.grid(column=1, row=2, sticky= EW)

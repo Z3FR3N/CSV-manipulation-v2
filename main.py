@@ -1,3 +1,4 @@
+from queue import Queue
 from sys import modules
 from io import IOBase
 from inspect import ismethod, getmembers, isclass
@@ -39,6 +40,7 @@ class App(MainWindow):
         self._selected_function = StringVar(value=" ")
         self._first_loaded_file = None
         self._second_loaded_file = None
+        self.bind('<<CheckQueue>>', self.check_queue)
         # Adding interface's elements, most complex ones with dedicated method
         self.create_widgets()
 
@@ -543,6 +545,8 @@ class App(MainWindow):
          if len(name) > self._combobox_width:
             self._combobox_width = len(name)
 
+    def check_queue(self, queue: Queue):
+       
 if __name__ == "__main__":
     app = App()
     app.mainloop()

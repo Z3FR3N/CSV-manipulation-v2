@@ -1,5 +1,5 @@
 from dialogs.dialogs import Parameters, Error, Frame, NSEW
-from main import App as main
+from main import CSV_Toolkit as main
 from main import DataFrame, StringVar
 from abc import ABCMeta, abstractmethod
 

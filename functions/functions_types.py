@@ -5,19 +5,23 @@ from tkinter.constants import NSEW, EW, E, W
 from dialogs.dialogs import Parameters, Error, ScrollableFrame
 from pandas import DataFrame, StringDtype
 from threading import Thread
-from queue import Empty, SimpleQueue
+from queue import Empty, Queue
 import numpy as np
 import datetime as dt
 import time
 
+""" CODE RESTRUCTURING NEEDED """
+
 # functions_types contains every data-manipulating class
 # We need to use the data getters every time we need data -> Dataframes are not memory safe.
 # TODO: -Create an API to dinamically import functions from files in a folder
-#       -Return a Dataframe with missing/errors
+#       - Return a Dataframe with missing/errors
 #       - A Function to analize some parameters of the csvs
 
-class  ConfrontingColumns(Thread): # this does the heavy lifting
-      def __init__(self, queue : SimpleQueue):
+class Multiple_search(Function):
+    """ A class capable of confronting  """
+    class  Cells_comparison(Thread): # this does the heavy lifting
+      def __init__(self, queue : Queue):
         super().__init__(daemon=True)
         
         self.queue = queue
@@ -53,8 +57,6 @@ class  ConfrontingColumns(Thread): # this does the heavy lifting
         self.queue.put(self.rejected)
         self.queue.put(self.result)
 
-class Multiplesearch(Function):
-# Restituire un dataframe con le voci scartate                    
     def __init__(self, main_window : main):
       super().__init__('Ricerca multipla', main_window)
 
@@ -87,17 +89,20 @@ class Multiplesearch(Function):
 
       #Initializing the main frame, didving in two section
       self.main_frame.grid_columnconfigure(0, weight=1, minsize= self._window.winfo_reqwidth())
-      self.main_frame.grid_rowconfigure(0, weight= 1) # To allocate labels and Comboboxes
-      self.main_frame.grid_rowconfigure(1, weight= 1) # To allocate two ScrollableFrame 
+
+      for n in [0,1]:
+        self.main_frame.grid_rowconfigure(0, weight= 1) # To allocate labels and Comboboxes
 
       # Top Frame: to choose CSVs
       self.top_frame = Frame(self.main_frame)
       self.top_frame.grid(column=0, row= 0, pady= 3, sticky=NSEW)
-      self.top_frame.grid_columnconfigure(0, weight= 1)
-      self.top_frame.grid_columnconfigure(1, weight= 1)
-      self.top_frame.grid_columnconfigure(2, weight= 1) 
-      self.top_frame.grid_rowconfigure(0, weight=1, pad= 3)
-      self.top_frame.grid_rowconfigure(1, weight=1, pad= 3)
+      
+      for n in [0,1,2]:
+        self.top_frame.grid_columnconfigure(n, weight= 1)
+      
+      for n in [0,1]:
+        self.top_frame.grid_rowconfigure(n, weight=1, pad= 3)
+      
       self.top_frame.grid_rowconfigure(2, weight=1)
 
       # Labels
@@ -135,8 +140,8 @@ class Multiplesearch(Function):
       self.bottom_frame.grid(row= 1, column= 0, sticky=NSEW)
       
       self.bottom_frame.grid_rowconfigure(0, weight=1)
-      self.bottom_frame.grid_columnconfigure(0, weight=1, minsize= self.main_frame.winfo_reqwidth() /2)
-      self.bottom_frame.grid_columnconfigure(1, weight=1, minsize= self.main_frame.winfo_reqwidth() /2)
+      for n in [0,1]:
+        self.bottom_frame.grid_columnconfigure(n, weight=1, minsize= self.main_frame.winfo_reqwidth() /2)
 
       # Two scrollableFrame to display columns
       self.main_frame.update_idletasks()
@@ -180,15 +185,15 @@ class Multiplesearch(Function):
           n_row += 1
     
     def generate(self):
-      self.queue = SimpleQueue() # FIFO structure, for Thread communication
+      self.queue = Queue() # FIFO structure, for Thread communication
       self.queue.put(self.column_list2.index(self.column_chosen2.get()))
       self.queue.put(self.column_list2)
       self.queue.put(self.column_list1.index(self.column_chosen1.get()))
       self.queue.put(self.data_chosen2.to_numpy(na_value="DTP", dtype=StringDtype))
       self.queue.put(self.data_chosen1.to_numpy(na_value="DTP", dtype=StringDtype))
       # generate an event in the mainloop to display Loading window
-      self._window.event_generate("<<CheckQueue>>")
-      self.thread = ConfrontingColumns(self.queue)
+      #self._window.event_generate("<<CheckQueue>>")
+      self.thread = self.Cells_comparison(self.queue)
       self.thread.start()
       banana = self.queue.get()
       banana2 = self.queue.get()
@@ -203,7 +208,7 @@ class Multiplesearch(Function):
     def info(self):
       return super().info()
 
-class Columnsselection(Function, Parameters):
+class Columns_selection(Function):
   def __init__(self, main_window : main):
     super().__init__('Selezione colonne', main_window)
 
@@ -219,12 +224,12 @@ class Columnsselection(Function, Parameters):
     # Variabile che indica la scelta
     self._selected_csv = StringVar()
     
-    self.main_frame.grid_columnconfigure(0, weight=1)
-    self.main_frame.grid_rowconfigure(0, weight=2)
-    self.main_frame.grid_rowconfigure(1, weight=1)
-    self.main_frame.grid_rowconfigure(2, weight=1)
-    self.main_frame.grid_rowconfigure(3, weight=1)
-    self.main_frame.grid_rowconfigure(4, weight=2)
+    self._window.main_frame.grid_columnconfigure(0, weight=1)
+    self._window.main_frame.grid_rowconfigure(0, weight=2)
+    self._window.main_frame.grid_rowconfigure(1, weight=1)
+    self._window.main_frame.grid_rowconfigure(2, weight=1)
+    self._window.main_frame.grid_rowconfigure(3, weight=1)
+    self._window.main_frame.grid_rowconfigure(4, weight=2)
     
     
     self.top_frame = Frame(self.main_frame)
@@ -313,7 +318,7 @@ class Columnsselection(Function, Parameters):
   def info(self):
     return super().info()
 
-class RenamesColumns(Function):
+class Renames_columns(Function):
 # restituire un dataframe con le voci scartate
     def __init__(self, main_window : main):
       super().__init__('Rinomina Colonne', main_window)
@@ -327,7 +332,6 @@ class RenamesColumns(Function):
     def take_parameters(self):
       print(self.name)
       super().take_parameters()
-      # TODO: prelevare l'header, selezionare le colonne chiave
 
     def generate(self):
       # TODO: Filtrare le colonne chiave, generare il DataFrame utilizzando Loading
@@ -339,3 +343,99 @@ class RenamesColumns(Function):
 
     def info(self):
       return super().info()
+
+class String_length_check(Function):
+# restituire un dataframe con le voci scartate
+    def __init__(self, main_window : main):
+      super().__init__('Lunghezza colonne', main_window)
+
+    def update_data(self):
+      return super().update_data()
+    
+    def take_data(self):
+      return super().take_data()
+    
+    def take_parameters(self):
+      super().take_parameters()
+
+      # Variabile che indica la scelta
+      self._selected_csv = StringVar()
+
+      self._window.main_frame.grid_columnconfigure(0, weight=1)
+      self._window.main_frame.grid_rowconfigure(0, weight=2)
+      self._window.main_frame.grid_rowconfigure(1, weight=1)
+      self._window.main_frame.grid_rowconfigure(2, weight=1)
+      self._window.main_frame.grid_rowconfigure(3, weight=1)
+      self._window.main_frame.grid_rowconfigure(4, weight=2)
+
+
+      self.top_frame = Frame(self.main_frame)
+
+      self.csv_label = Label(self.top_frame, text= 'CSV: ')
+      self.csv_label.grid(column=0, row=0)
+
+      self.choices = Combobox( self.top_frame, 
+                                textvariable= self._selected_csv,
+                                values= self.csv_available)
+
+      self.choices.grid(column= 1, row=0)
+
+      self.csv_button = Button(self.top_frame, text='Leggi', command= self.read)
+      self.csv_button.grid(column=2, row= 0, padx= 5, pady= 2)
+      self.top_frame.grid(column= 0, row= 0)
+
+      self.bottom_frame = Frame(self.main_frame)
+      self.csv_label2 = Label(self.bottom_frame, text= 'Nome nuovo CSV: ')
+      self.csv_entry = Entry(self.bottom_frame, textvariable= self._result_name)
+      self.bottom_frame.grid(column=0, row=4, pady= 2)
+
+      # Adding separators
+
+      self.separatore = Separator(self.main_frame, orient='horizontal')
+      self.separatore.grid(column=0, row=1, sticky='EW')
+
+      self.separatore2 = Separator(self.main_frame, orient='horizontal')
+      self.separatore2.grid(column=0, row=3, sticky='EW')
+
+      # Il secondo cambia la vista in base ai valori
+      self.mid_frame = Frame(self.main_frame)
+      self.mid_frame.grid_columnconfigure(0, weight=1, minsize=300)
+      self.mid_frame.grid_rowconfigure(0, weight= 1)
+      self._window.update_idletasks() # to catch the right amount of width and height
+      self.scrollable = ScrollableFrame(self.mid_frame, ( self._window.winfo_reqheight() - 
+                                                          self.top_frame.winfo_reqheight() -
+                                                          self.separatore.winfo_reqheight() -
+                                                          self.bottom_frame.winfo_reqheight() - 
+                                                          self._window.bottom_frame.winfo_reqheight() - 20)) #defining height
+
+      self.scrollable.grid(column= 0, row=0, sticky=NSEW)
+      self.mid_frame.grid(column=0, row=2, sticky=EW)
+
+      self.csv_label2.grid(column=0, row=0, sticky=W)
+      self.csv_entry.grid(column=1, row=0)
+
+    def read(self):
+      # Prelevo il Dataframe
+      try:
+        csv = self._selected_csv.get()
+        self._dataframe_chosen = DataFrame(self._data_map[csv])
+        self._columns_list = self._dataframe_chosen.columns.values.tolist()
+      except:
+        Error(self._window, 'Qualcosa è andato storto')
+
+      self._chosen = [] # Create a list of IntVar as big as column_list
+      grid_row = 0 # Counter
+      self._window.update_idletasks() # Updating width/heigt flags
+      
+
+    def generate(self):
+      # TODO: Filtrare le colonne chiave, generare il DataFrame utilizzando Loading
+      print('do something')
+
+    def export(self):
+      # TODO: Utilizzare Columnsselection per scegliere le colonne
+      return super().export()
+
+    def info(self):
+      return super().info()
+    

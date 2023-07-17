@@ -2,11 +2,13 @@ from queue import Queue
 from sys import modules
 from io import IOBase
 from inspect import ismethod, getmembers, isclass
-from tkinter import LabelFrame, StringVar, Tcl
-from pandas import DataFrame, read_csv
+from tkinter import LabelFrame, StringVar
 from tkinter.ttk import Frame, Button, Combobox, Radiobutton, Notebook, Label
+from tkinter.constants import N, S, E, W, NSEW, DISABLED, ACTIVE, CENTER, LEFT, GROOVE, FLAT
+from general_settings import multicolumnconfigure, multirowconfigure
+from pandas import DataFrame, read_csv
 from tkinter.filedialog import askopenfile, asksaveasfile
-from main_settings import MainWindow
+from main_settings import Main_window
 from pandastable import Table # plotting a table from a DataFrame
 from dialogs.dialogs import Error
 from functions.functions_types import * # wildcard is necessary, this is a very large module wich contains a lot of code (superclass + abstract class pattern)
@@ -18,8 +20,8 @@ from functions.functions_types import * # wildcard is necessary, this is a very 
         - Enhance encapsulation and setting the returns for better reporting
 """
 
-class CSV_Toolkit(MainWindow):
-  """  """ 
+class CSV_Toolkit(Main_window):
+  """ Main class: contains the mainloop and initialize the data  """ 
 
   _data1 = DataFrame()
   _data2 = DataFrame()
@@ -27,48 +29,21 @@ class CSV_Toolkit(MainWindow):
 
   def __init__(self):
     super().__init__('Manipolazione CSV', 550, 500, 400, "CSV manipulation v2\\ICO.png", 30 )
-      
-    self._function_list = []
-    self._function_list_names = []
-    self._results_names = []
-    self.create_list()
-    self._first_file_name = StringVar(value= 'Nessun CSV caricato')
-    self._second_file_name = StringVar(value='Nessun CSV caricato')
-    self._first_sep = StringVar(value=" ")
-    self._second_sep = StringVar(value=" ")
-    self._selected_function = StringVar(value=" ")
-    self._first_loaded_file = None
-    self._second_loaded_file = None
+    
+    self.initialize_data()
+    self.generate_function_list()
+    
     #self.bind('<<CheckQueue>>', self.check_queue) # virtual event for managing Threads
     # Adding interface's elements, most complex ones with dedicated method
     self.create_widgets()
 
     # Initially, preview will be empty
     self.reset() 
-        
+    
     # Always create the grid AFTER widgets
     self.create_grid()
     
     # Getter
-
-  def add_results(self, data: DataFrame, name : str):
-    #input validation
-    not_allowed = ['^', '~', '$', '”', '#', '%', '&', '*', ':', '<', '>', '?', '/', '\\', '{', '|', '}' ]
-    if data.empty == True: # more validation on the Dataframe needed!
-      return Error(self, 'Nessun dato generato')
-    if name =='' or name.isspace() or self.first_file_name.rfind(name) != -1 or self.first_file_name.rfind(name) != -1:
-      return Error(self, 'Nome non valido!')
-    if self.results_names.count(name) >= 1:
-      return Error(self, 'Nome già presente!')
-    for item in not_allowed:
-      if name.rfind(item) != -1:
-        return Error(self, 'Il nome NON può contenere uno\ndi questi caratteri:\n' + ' '.join(not_allowed))
-      # adding results:
-    else:
-      self._results.append(data)
-      self._results_names.append(str(name))
-      self.draw_preview(data, name, len(self._csv_preview.tabs()) + 1)
-      self._salva.config(state='!disabled')
     
   def get_data1(self):
     return self._data1
@@ -90,7 +65,42 @@ class CSV_Toolkit(MainWindow):
     
   # METHODS
 
+  def initialize_data(self):
+    """ Generate the data necessary to the widgets and interactions """
+    self._function_list = []
+    self._function_list_names = []
+    self._results_names = []
+    self._first_file_name = StringVar(value= 'Nessun CSV caricato')
+    self._second_file_name = StringVar(value='Nessun CSV caricato')
+    self._first_sep = StringVar(value=" ")
+    self._second_sep = StringVar(value=" ")
+    self._selected_function = StringVar(value=" ")
+    self._first_loaded_file = None
+    self._second_loaded_file = None
+
+
+  def add_results(self, data: DataFrame, name : str):
+    """Make input validation to save the file and add the Dataframe provided to the results list """
+
+    not_allowed = ['^', '~', '$', '”', '#', '%', '&', '*', ':', '<', '>', '?', '/', '\\', '{', '|', '}' ]
+    if data.empty == True: # more validation on the Dataframe needed!
+      return Error(self, 'Nessun dato generato')
+    if name =='' or name.isspace() or self.first_file_name.rfind(name) != -1 or self.first_file_name.rfind(name) != -1:
+      return Error(self, 'Nome non valido!')
+    if self.results_names.count(name) >= 1:
+      return Error(self, 'Nome già presente!')
+    for item in not_allowed:
+      if name.rfind(item) != -1:
+        return Error(self, 'Il nome NON può contenere uno\ndi questi caratteri:\n' + ' '.join(not_allowed))
+      # adding results:
+    else:
+      self._results.append(data)
+      self._results_names.append(str(name))
+      self.draw_preview(data, name, len(self._csv_preview.tabs()) + 1)
+      self._salva.config(state=ACTIVE)
+
   def create_widgets(self):
+    """Create all the widgets needed for the GUI"""
 
     self._main_frame = Frame( self, relief='flat')
 
@@ -102,11 +112,11 @@ class CSV_Toolkit(MainWindow):
         
     self._carica = Button( self._main_frame, text='Carica CSV', command= self.load)
         
-    self._salva = Button( self._main_frame, text= 'Salva', command = self.save, state='disabled')
+    self._salva = Button( self._main_frame, text= 'Salva', command = self.save, state= DISABLED)
         
     self._info = Button( self._main_frame, text= 'Info', command= self.info)
         
-    self._genera = Button(  self._main_frame, text= 'Genera', command= self.generate, state='disabled')
+    self._genera = Button(  self._main_frame, text= 'Genera', command= self.generate, state= DISABLED)
 
     # Combobox for selecting the function to launch
 
@@ -116,8 +126,8 @@ class CSV_Toolkit(MainWindow):
         
     self._functions_text = Label( self._functions_frame,
                                   text= "Funzioni: ",
-                                  justify= 'left',
-                                  anchor='center')
+                                  justify= LEFT,
+                                  anchor= CENTER)
 
     self._functions_cbox = Combobox(  self._functions_frame, 
                                       textvariable= self._selected_function,
@@ -126,35 +136,35 @@ class CSV_Toolkit(MainWindow):
                                       width= self._combobox_width)
     self._functions_cbox.current(0)
         
-    self._functions_text.grid(row= 0, column= 0, sticky= ('E'), padx= 5)
-    self._functions_cbox.grid(row= 0, column= 1, sticky=('W'))
+    self._functions_text.grid(row= 0, column= 0, sticky= E, padx= 5)
+    self._functions_cbox.grid(row= 0, column= 1, sticky=W)
 
     self._functions_frame.rowconfigure(0, weight=1)
-    self._functions_frame.columnconfigure(0, weight= 1)
-    self._functions_frame.columnconfigure(1, weight=1)
+    
+    multicolumnconfigure(self._functions_frame, [0, 1], weight= 1)
 
     # Due sezioni con LabelFrame da riempire con il nome dei file caricati
         
     self._first_name = LabelFrame(  self._main_frame, 
                                     text= 'CSV 1',
-                                    labelanchor='n',
-                                    relief= 'groove')
+                                    labelanchor= N,
+                                    relief= GROOVE)
         
     self._display_name1 = Label(  self._first_name, 
                                   textvariable= self._first_file_name,
-                                  justify= 'center',
-                                  anchor='center',
+                                  justify= CENTER,
+                                  anchor= CENTER,
                                   padding= 3)
         
     self._second_name = LabelFrame( self._main_frame, 
                                     text='CSV 2',
-                                    labelanchor='n',
-                                    relief= 'groove')
+                                    labelanchor= N,
+                                    relief= GROOVE)
         
     self._display_name2 = Label(  self._second_name, 
                                   textvariable= self._second_file_name,
-                                  justify= 'center',
-                                  anchor='center',
+                                  justify= CENTER,
+                                  anchor=CENTER,
                                   padding= 3)
 
     self._sep_text1 = Label(  self._first_name, text= 'Separatore:')
@@ -190,7 +200,7 @@ class CSV_Toolkit(MainWindow):
                                           variable= self._second_sep,
                                           value= ',')
         
-        # setting default separator
+    # setting default separator
     self._second_sep_dotcomma.invoke()
         
     # Notebook for preview
@@ -198,15 +208,16 @@ class CSV_Toolkit(MainWindow):
     self._csv_preview = Notebook( self._main_frame)
 
   def create_grid(self):
-        
-    self._main_frame.grid(  column=0, row=0, sticky=('NSEW') )
+    """ Place all the widgets to the grid"""     
+
+    self._main_frame.grid(  column=0, row=0, sticky= NSEW )
         
     # Row 1
 
     self._functions_frame.grid( column= 1,
                                 row= 0,
                                 columnspan= 2,
-                                sticky=('EW'),
+                                sticky= EW,
                                 pady= 5 )
 
     self._info.grid(  column= 0, row= 0, pady= 5  )
@@ -220,23 +231,23 @@ class CSV_Toolkit(MainWindow):
                             columnspan= 4,
                             pady= 5,
                             padx= 2,
-                            sticky=('NSEW') )
+                            sticky= NSEW )
         
     # Row 3
         
     # Placing objects inside the first Labelframe
 
-    self._sep_text1.grid( column= 0, row= 1, sticky= 'E' )
+    self._sep_text1.grid( column= 0, row= 1, sticky= E )
         
     self._first_sep_dotcomma.grid(  row= 1, column= 1 )
         
-    self._first_sep_comma.grid( row= 1, column= 2, sticky= 'W')
+    self._first_sep_comma.grid( row= 1, column= 2, sticky= W)
         
     self._display_name1.grid( row= 0, column= 0, columnspan= 3)
         
     self._load_first.grid(  column= 0,
                             row= 2,
-                            sticky=('NSEW'),
+                            sticky= NSEW,
                             columnspan= 3)
         
     # LabelFrame ready
@@ -244,21 +255,21 @@ class CSV_Toolkit(MainWindow):
     self._first_name.grid(  column= 0,
                             row= 2,
                             columnspan= 2,
-                            sticky=('EW'),
+                            sticky= EW,
                             padx= 5,
                             pady= 5 )
         
     # Placing objects inside the second Labelframe
         
-    self._sep_text2.grid(   column= 0, row= 1, sticky= 'E' )
+    self._sep_text2.grid(   column= 0, row= 1, sticky= E )
         
     self._second_sep_dotcomma.grid( row= 1, column= 1 )
         
-    self._second_sep_comma.grid(  row= 1, column= 2, sticky= 'W')
+    self._second_sep_comma.grid(  row= 1, column= 2, sticky= W)
         
     self._load_second.grid( column= 0,
                             row= 2,
-                            sticky=('NSEW'),
+                            sticky=NSEW,
                             columnspan= 3)
         
     self._display_name2.grid( row= 0, column= 0, columnspan= 3)
@@ -273,30 +284,11 @@ class CSV_Toolkit(MainWindow):
                             pady= 5)
         
     # Configure rows and columns to display the labelframe
-        
-    self._first_name.rowconfigure(  0, weight= 1, pad=2)
-        
-    self._first_name.rowconfigure(  1, weight= 1, pad=2)
 
-    self._first_name.rowconfigure(  2, weight= 1, pad=2)
-
-    self._first_name.columnconfigure( 0, weight= 1)
-
-    self._first_name.columnconfigure( 1, weight= 1)
-
-    self._first_name.columnconfigure( 2, weight= 1)
-
-    self._second_name.rowconfigure( 0, weight= 1, pad=2)
-        
-    self._second_name.rowconfigure( 1, weight= 1, pad=2)
-        
-    self._second_name.rowconfigure( 2, weight= 1, pad=2)
-        
-    self._second_name.columnconfigure(  0, weight= 1)
-        
-    self._second_name.columnconfigure(  1, weight= 1)
-        
-    self._second_name.columnconfigure(  2, weight= 1)
+    multirowconfigure(self._first_name, [0,1,2], weight=1, pad=2)
+    multicolumnconfigure(self._first_name, [0,1,2], weight= 1)
+    multirowconfigure(self._second_name, [0,1,2], weight=1, pad=2)
+    multicolumnconfigure(self._second_name, [0,1,2], weight=1)
 
     # Row 4
 
@@ -313,18 +305,21 @@ class CSV_Toolkit(MainWindow):
     self.columnconfigure( 0, weight=1, pad= 5)  # self._main_frame
         
     self.rowconfigure(  0, weight=1, pad= 5)     # self._main_frame
+
         
     self._main_frame.columnconfigure( 0, weight=1, pad= 3)
 
-    self._main_frame.columnconfigure( 1, weight=3, pad= 3)
-        
-    self._main_frame.columnconfigure( 2, weight=3, pad= 3) 
+    multicolumnconfigure(self._main_frame, [1,2], weight=3, pad= 3)
         
     self._main_frame.columnconfigure( 3, weight=1, pad= 3)
         
     self._main_frame.rowconfigure(  1, weight= 5)      
 
   def clean_preview(self, count = 0):
+    """ Reset all the tabs in the notebook and load the \"No preview\" tab.
+        Can remove specific tabs:
+
+        count=2 --> tab nr. 2 removed"""
     for i in self._csv_preview.tabs():
       self._csv_preview.forget(i)
 
@@ -334,8 +329,8 @@ class CSV_Toolkit(MainWindow):
                                         text='Nessun file caricato')
       
     self._no_preview_loaded.place(  relx=0.5, 
-                                      rely=0.5, 
-                                      anchor='center')
+                                    rely=0.5, 
+                                    anchor=CENTER)
       
     self._csv_preview.add(self._no_preview, text= 'No csv')
       
@@ -343,9 +338,9 @@ class CSV_Toolkit(MainWindow):
       self._csv_preview.forget(count)
 
   def draw_preview(self, data : DataFrame, name: str, position : int):
-
+    """ Draw the table for the Dataframe and adds it to the notebook"""
     # DataFrame loaded
-    self._csv = Frame(  self._csv_preview, relief= 'flat')   
+    self._csv = Frame(  self._csv_preview, relief= FLAT)   
       
     # Populating the frames
     self._table = Table(  self._csv, 
@@ -369,7 +364,7 @@ class CSV_Toolkit(MainWindow):
       self._csv_preview.select(self._csv)
       
   def switch(self):
-        
+    """ Switch the first file with the secon file"""
     if(self._first_loaded_file != None and self._second_loaded_file != None and len(self._csv_preview.tabs()) > 2):
 
       tmp = self._first_loaded_file
@@ -389,11 +384,12 @@ class CSV_Toolkit(MainWindow):
       Error(self, "Carica i due CSV!")
 
   def info(self):
+    """Display a Window wich explains what the selected function do """
     #colonna = ColumnsComparison(self) # always instanciate to use properties
     print('banana')
 
   def reset(self, count = 0):
-      
+    """ Reset all the data and the notebook view, count can control which file and which notebook tab will be deleted"""  
     if (count == 0):
       self._first_loaded_file = None
       self._second_loaded_file = None
@@ -403,14 +399,14 @@ class CSV_Toolkit(MainWindow):
       self._second_file_name.set('Nessun CSV caricato')
 
       self.clean_preview()
-      self._carica.config(state= '!disabled')
-      self._genera.state(['disabled'])
+      self._carica.config(state= ACTIVE)
+      self._genera.state([DISABLED])
 
     if (count == 1):
         self._first_loaded_file = None
         self._first_file_name.set('')
         self.clean_preview()
-        self._genera.state(['disabled'])
+        self._genera.state([DISABLED])
         self._results.clear()
 
     if (count == 2):
@@ -420,38 +416,40 @@ class CSV_Toolkit(MainWindow):
         self._results.clear()
 
   def generate(self):
+    """ Launch the selected class to the notebook"""
     #try:
-      for fun in self._function_list:
-        if fun.__eq__(self._selected_function.get()) and ismethod(fun.take_parameters):
-          fun.take_parameters()
-          if (len(self._results) > 0):
-            self._salva.state(['!disabled'])
-          break
+    for fun in self._function_list:
+      if fun.__eq__(self._selected_function.get()) and ismethod(fun.take_parameters):
+        fun.take_parameters()
+        if (len(self._results) > 0):
+          self._salva.state([ACTIVE])
+        break
     #except:
       #Error(self, 'Inserisci una funzione valida!')
   
   def save(self):
-      
-      name = self._csv_preview.tab(self._csv_preview.select(), "text")
+    """Displays a save window to save all the dataframe generated """
+    name = self._csv_preview.tab(self._csv_preview.select(), "text")
 
-      if (len(self._results) > 0):
-        files = [('File CSV', '*.csv')]
+    if (len(self._results) > 0):
+      files = [('File CSV', '*.csv')]
 
-        path = asksaveasfile(   parent = self, 
-                                filetypes= files,
-                                title= 'Salva con nome',
-                                confirmoverwrite= True,
-                                initialfile= name)
-        if (path != None):
-          for i in self._results_names:
-            if str(name) == str(i + '.csv'):
-              data = self._results_names.index(i)
-              DataFrame(self._results[data]).to_csv(path, index=False, lineterminator='\n', encoding='utf-8', sep=';')
-              print(DataFrame(self._results[data]).head())
-        else:
-            Error(self, 'Indica un file!')
+      path = asksaveasfile(   parent = self, 
+                              filetypes= files,
+                              title= 'Salva con nome',
+                              confirmoverwrite= True,
+                              initialfile= name)
+      if (path != None):
+        for i in self._results_names:
+          if str(name) == str(i + '.csv'):
+            data = self._results_names.index(i)
+            DataFrame(self._results[data]).to_csv(path, index=False, lineterminator='\n', encoding='utf-8', sep=';')
+            print(DataFrame(self._results[data]).head())
+      else:
+        Error(self, 'Indica un file!')
          
   def load_first(self):
+    """ Load the first Dataframe from filesystem"""
     files = [('File CSV', '*.csv')]
 
     self._first_loaded_file = askopenfile(  title= 'Carica il primo file',
@@ -480,7 +478,7 @@ class CSV_Toolkit(MainWindow):
                                 low_memory=False)
         
         self.draw_preview( self._data1, self._first_file_name.get().split('.')[0], 1)
-        self._genera.state(['!disabled'])
+        self._genera.config(state=ACTIVE)
 
       except:
 
@@ -489,6 +487,7 @@ class CSV_Toolkit(MainWindow):
         self.reset(1)
 
   def load_second(self):
+    """Load the second Dataframe from the filesystem"""
     files = [('File CSV', '*.csv')]
     
     self._second_loaded_file = askopenfile(   title= 'Carica il secondo file',
@@ -514,7 +513,7 @@ class CSV_Toolkit(MainWindow):
                                   low_memory= False)
         
         self.draw_preview(self._data2, self._second_file_name.get().split('.')[0], 2)
-        self._genera.state(['!disabled'])
+        self._genera.state([ACTIVE])
 
       except:
 
@@ -523,12 +522,14 @@ class CSV_Toolkit(MainWindow):
         self.reset(2)
        
   def load(self):
-
+    """ Load both Dataframe """
     self.load_first()
     self.load_second()
     
-  def create_list(self):
-    skip = ['CSV_Toolkit', 'Button', 'Checkbutton', 'Combobox', 'DataFrame', 'Entry', 'Error', 'Function', 'Frame', 'IOBase', 'IntVar', 'Label', 'LabelFrame', 'Notebook', 'Queue', 'Radiobutton', 'ScrollableFrame', 'Separator', 'StringDtype', 'StringVar', 'Table', 'Tcl', 'Thread', 'Image', 'ImageTk', 'MainWindow', 'Table', 'Loading', 'Parameters', 'ThreadPool']
+  def generate_function_list(self):
+    """ Takes all the classes names from the function_types files and initialize it to point to the right class """
+    skip = [  'CSV_Toolkit', 'Button', 'Checkbutton', 'Combobox', 'DataFrame', 'Entry', 'Error', 'Function', 'Frame', 'IOBase',
+              'IntVar', 'Label', 'LabelFrame', 'Notebook', 'Queue', 'Radiobutton', 'ScrollableFrame', 'Separator', 'StringDtype', 'StringVar', 'Table', 'Tcl', 'Thread', 'Image', 'ImageTk', 'MainWindow', 'Table', 'Loading', 'Parameters', 'ThreadPool'] # some cleaning before analyzing the list (avoid the instanciation of useless class)
     for name, obj in getmembers(modules[__name__]):
       if name in skip: # avoid instanciating known classes:
         continue
@@ -541,8 +542,8 @@ class CSV_Toolkit(MainWindow):
     
     self._combobox_width = 0
     for name in self._function_list_names:
-        if len(name) > self._combobox_width:
-          self._combobox_width = len(name)
+      if len(name) > self._combobox_width:
+        self._combobox_width = len(name)
 
     #def check_queue(self, queue: Queue):
        

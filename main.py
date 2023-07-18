@@ -18,6 +18,8 @@ from functions.functions_types import * # wildcard is necessary, this is a very 
   TODO: - Code optimization through Loop and better Attributes assignment
         - Better naming convention
         - Enhance encapsulation and setting the returns for better reporting
+        - Create a map for managing results to associate Dataframes.
+        - Create the check_queue method to communicate with threads
 """
 
 class CSV_Toolkit(Main_window):
@@ -25,7 +27,7 @@ class CSV_Toolkit(Main_window):
 
   _data1 = DataFrame()
   _data2 = DataFrame()
-  _results = []
+  _results = list()
 
   def __init__(self):
     super().__init__('Manipolazione CSV', 550, 500, 400, "CSV manipulation v2\\ICO.png", 30 )
@@ -33,7 +35,8 @@ class CSV_Toolkit(Main_window):
     self.initialize_data()
     self.generate_function_list()
     
-    #self.bind('<<CheckQueue>>', self.check_queue) # virtual event for managing Threads
+    self.bind('<<CheckQueue>>', self.check_queue) # virtual event for managing Threads
+
     # Adding interface's elements, most complex ones with dedicated method
     self.create_widgets()
 
@@ -43,33 +46,54 @@ class CSV_Toolkit(Main_window):
     # Always create the grid AFTER widgets
     self.create_grid()
     
-    # Getter
+  # GETTER
     
   def get_data1(self):
+    """ 
+     Return the first Dataframe
+    """
     return self._data1
     
   def get_data2(self):
+    """ 
+     Return the second Dataframe
+    """
     return self._data2
 
   @property
   def results_names(self):
+    """ 
+     Return all the names of the dataframe
+    """
     return self._results_names
 
   @property
   def first_file_name(self):
+    """ 
+     Return the name of the first file (once loaded) 
+    """
     return self._first_file_name.get()
     
   @property
   def second_file_name(self):
+    """
+    Return the name of the second file (once loaded)
+    """
     return self._second_file_name.get()
     
   # METHODS
 
+  def check_queue(self, event):
+    """ 
+    Enables communications with threads throught queue
+    """
+    pass
+
   def initialize_data(self):
-    """ Generate the data necessary to the widgets and interactions """
-    self._function_list = []
-    self._function_list_names = []
-    self._results_names = []
+    """ Generate the necessary data for widgets """
+    self._function_list = list()
+    self._function_list_names = list()
+    self._results_names = list()
     self._first_file_name = StringVar(value= 'Nessun CSV caricato')
     self._second_file_name = StringVar(value='Nessun CSV caricato')
     self._first_sep = StringVar(value=" ")
@@ -77,10 +101,10 @@ class CSV_Toolkit(Main_window):
     self._selected_function = StringVar(value=" ")
     self._first_loaded_file = None
     self._second_loaded_file = None
-
+    self.queue = Queue()
 
   def add_results(self, data: DataFrame, name : str):
-    """Make input validation to save the file and add the Dataframe provided to the results list """
+    """Does some input validation to save the file with the correct name and add the provided Dataframe to the results list """
 
     not_allowed = ['^', '~', '$', '”', '#', '%', '&', '*', ':', '<', '>', '?', '/', '\\', '{', '|', '}' ]
     if data.empty == True: # more validation on the Dataframe needed!
@@ -100,7 +124,9 @@ class CSV_Toolkit(Main_window):
       self._salva.config(state=ACTIVE)
 
   def create_widgets(self):
-    """Create all the widgets needed for the GUI"""
+    """
+    Instanciate all the widgets needed for the GUI
+    """
 
     self._main_frame = Frame( self, relief='flat')
 
@@ -208,7 +234,9 @@ class CSV_Toolkit(Main_window):
     self._csv_preview = Notebook( self._main_frame)
 
   def create_grid(self):
-    """ Place all the widgets to the grid"""     
+    """ 
+    Place all the widgets into the grid
+    """
 
     self._main_frame.grid(  column=0, row=0, sticky= NSEW )
         
@@ -305,7 +333,6 @@ class CSV_Toolkit(Main_window):
     self.columnconfigure( 0, weight=1, pad= 5)  # self._main_frame
         
     self.rowconfigure(  0, weight=1, pad= 5)     # self._main_frame
-
         
     self._main_frame.columnconfigure( 0, weight=1, pad= 3)
 

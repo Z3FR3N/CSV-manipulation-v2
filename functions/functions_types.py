@@ -1,20 +1,20 @@
 from functions.function import Function, main
-from general_settings import multicolumnconfigure, multirowconfigure
-from tkinter import HORIZONTAL, Radiobutton, StringVar, IntVar
+from general_settings import multicolumnconfigure, multirowconfigure, loadqueue
+from tkinter import Radiobutton, StringVar, IntVar
 from tkinter.ttk import Combobox, Frame, Label, Separator, Button, Checkbutton, Entry
-from tkinter.constants import NSEW, EW, E, W
+from tkinter.constants import NSEW, EW, E, W, HORIZONTAL
 from dialogs.dialogs import Parameters, Error, ScrollableFrame
 from pandas import DataFrame, StringDtype
 from threading import Thread
 from queue import Empty, Queue
+from enum import Enum, auto
 import numpy as np
 import datetime as dt
 import time
 
-""" CODE RESTRUCTURING NEEDED """
-
 # functions_types contains every data-manipulating class
-# We need to use the data getters every time we need data -> Dataframes are not memory safe.
+# We need to use the data getters every time we need data -> Dataframes are not thread safe.
+
 # TODO: -Create an API to dinamically import functions from files in a folder
 #       - Return a Dataframe with missing/errors
 #       - A Function to analize some parameters of the csvs
@@ -35,12 +35,12 @@ class Multiple_search(Function):
         self.data_array1 = self.queue.get()
         print('queue inizializzata')
       except Empty:
-        print('Queue non inizializzata')
+        print('queue non inizializzata')
 
       self.match = []
       self.rejected = []
     
-    # we can calculate the amount of comparisons and communicate to the mainloop throught the queue: https://www.youtube.com/watch?v=ghSDvtVJPck
+# we can calculate the amount of comparisons and communicate to the mainloop throught the queue: https://www.youtube.com/watch?v=ghSDvtVJPck
     
     def run(self):
       print('entrato in run')
@@ -182,18 +182,23 @@ class Multiple_search(Function):
         n_row += 1
   
   def generate(self):
-    self.queue = Queue() # FIFO structure, for Thread communication
-    for element in [  self.column_list2.index(self.column_chosen2.get()), 
-                      self.column_list2, self.column_list1.index(self.column_chosen1.get()), 
-                      self.data_chosen2.to_numpy(na_value="DTP", dtype=StringDtype), 
-                      self.data_chosen1.to_numpy(na_value="DTP", dtype=StringDtype) ]:
-      self.queue.put(element)
+    loadqueue(  self.main_window.queue, 
+              [ self.column_list2.index(self.column_chosen2.get()), 
+                self.column_list2, self.column_list1.index(self.column_chosen1.get()), 
+                self.data_chosen2.to_numpy(na_value="DTP", dtype=StringDtype), 
+                self.data_chosen1.to_numpy(na_value="DTP", dtype=StringDtype) ])
+    
+    #for element in [  self.column_list2.index(self.column_chosen2.get()), 
+    #                  self.column_list2, self.column_list1.index(self.column_chosen1.get()), 
+    #                  self.data_chosen2.to_numpy(na_value="DTP", dtype=StringDtype), 
+    #                  self.data_chosen1.to_numpy(na_value="DTP", dtype=StringDtype) ]:
+    #  self.main_window.queue.put(element)
     # generate an event in the mainloop to display Loading window
     # self._window.event_generate("<<CheckQueue>>")
-    self.thread = self.Cells_comparison(self.queue)
-    self.thread.start()
-    banana = self.queue.get()
-    banana2 = self.queue.get()
+    thread = self.Cells_comparison(self.main_window.queue)
+    thread.start()
+    banana = self.main_window.queue.get()
+    banana2 = self.main_window.queue.get()
     print(banana2.head())
     print(len(banana))
         
@@ -244,15 +249,15 @@ class Columns_selection(Function):
     self.bottom_frame = Frame(self.main_frame)
     self.csv_label2 = Label(self.bottom_frame, text= 'Nome nuovo CSV: ')
     self.csv_entry = Entry(self.bottom_frame, textvariable= self._result_name)
-    self.bottom_frame.grid(column=0, row=4, pady= 2)
+    self.bottom_frame.grid( column=0, row=4, pady= 2)
 
     # Adding separators
 
     self.separatore = Separator(self.main_frame, orient=HORIZONTAL)
-    self.separatore.grid(column=0, row=1, sticky=EW)
+    self.separatore.grid( column=0, row=1, sticky=EW)
 
     self.separatore2 = Separator(self.main_frame, orient=HORIZONTAL)
-    self.separatore2.grid(column=0, row=3, sticky=EW)
+    self.separatore2.grid(  column=0, row=3, sticky=EW)
    
     # Il secondo cambia la vista in base ai valori
     self.mid_frame = Frame(self.main_frame)
@@ -265,11 +270,11 @@ class Columns_selection(Function):
                                                         self.bottom_frame.winfo_reqheight() - 
                                                         self._window.bottom_frame.winfo_reqheight() - 20)) #defining height
 
-    self.scrollable.grid(column= 0, row=0, sticky=NSEW)
-    self.mid_frame.grid(column=0, row=2, sticky=EW)
+    self.scrollable.grid( column= 0, row=0, sticky=NSEW)
+    self.mid_frame.grid(  column=0, row=2, sticky=EW)
 
-    self.csv_label2.grid(column=0, row=0, sticky=W)
-    self.csv_entry.grid(column=1, row=0)
+    self.csv_label2.grid( column=0, row=0, sticky=W)
+    self.csv_entry.grid(  column=1, row=0)
     
   def read(self):
     # Prelevo il Dataframe
@@ -339,9 +344,11 @@ class Renames_columns(Function):
       return super().info()
 
 class String_length_check(Function):
-# restituire un dataframe con le voci scartate
+  """
+  Restituire un Dataframe con tutte le celle che rispettano i requisiti
+  """
   def __init__(self, main_window : main):
-    super().__init__('Lunghezza caratteri colonne', main_window)
+    super().__init__('Lunghezza caratteri celle', main_window)
 
   def update_data(self):
     return super().update_data()
@@ -376,12 +383,14 @@ class String_length_check(Function):
     self.top_frame.grid(column= 0, row= 0)
 
     # Adding separators
-
     self.separatore = Separator(self.main_frame, orient=HORIZONTAL)
     self.separatore.grid(column=0, row=1, sticky=EW)
 
     self.separatore2 = Separator(self.main_frame, orient=HORIZONTAL)
     self.separatore2.grid(column=0, row=3, sticky=EW)
+
+    self.bottom_frame = Frame(self.main_frame)
+    self.bottom_label1 = Label(self.bottom_frame, text='Individua celle più lunghe di')
 
     # Il secondo cambia la vista in base ai valori
     self.mid_frame = Frame(self.main_frame)
@@ -390,6 +399,7 @@ class String_length_check(Function):
     self._window.update_idletasks() # to catch the right amount of width and height
     self.scrollable = ScrollableFrame(self.mid_frame, ( self._window.winfo_reqheight() - 
                                                         self.top_frame.winfo_reqheight() -
+                                                        self.bottom_frame.winfo_reqheight() -
                                                         self.separatore.winfo_reqheight() -
                                                         self._window.bottom_frame.winfo_reqheight() - 20)) #defining height
 
@@ -413,7 +423,7 @@ class String_length_check(Function):
       self.value = IntVar()
       self.check = Checkbutton(self.scrollable.interior, onvalue=1, offvalue=0, text = self._columns_list[i], variable = self.value)
       self._chosen.append(self.value)
-      self.check.grid(column= 0, row= grid_row, padx= (((self._window.winfo_reqwidth() - 
+      self.check.grid(column= 0, row= grid_row, padx= ((( self._window.winfo_reqwidth() - 
                                                           self.check.winfo_reqwidth() - 
                                                           self.scrollable.vscrollbar.winfo_reqwidth()) / 2))) # Defining padding
       grid_row+= 1 
@@ -423,7 +433,7 @@ class String_length_check(Function):
       if self._chosen[i].get() == 1:
         column = self._columns_list[i]
         
-    index = self._dataframe_chosen.reset_index()  # make sure indexes pair with number of rows
+    print()
 
   def export(self):
     # TODO: Utilizzare Columnsselection per scegliere le colonne

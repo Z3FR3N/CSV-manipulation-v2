@@ -5,12 +5,13 @@ from inspect import ismethod, getmembers, isclass
 from tkinter import LabelFrame, StringVar
 from tkinter.ttk import Frame, Button, Combobox, Radiobutton, Notebook, Label
 from tkinter.constants import N, S, E, W, NSEW, DISABLED, ACTIVE, CENTER, LEFT, GROOVE, FLAT
+from multithreading import Ticket_pourpose
 from general_settings import multicolumnconfigure, multirowconfigure
 from pandas import DataFrame, read_csv
 from tkinter.filedialog import askopenfile, asksaveasfile
 from main_settings import Main_window
 from pandastable import Table # plotting a table from a DataFrame
-from dialogs.dialogs import Error
+from dialogs.dialogs import Error, Loading
 from functions.functions_types import * # wildcard is necessary, this is a very large module wich contains a lot of code (superclass + abstract class pattern)
 # import customtkinter as ctk -> can be useful for restyling
 
@@ -87,7 +88,17 @@ class CSV_Toolkit(Main_window):
     """ 
     Enables communications with threads throught queue
     """
-    pass
+    msg = self.queue.get()
+
+    if msg.ticket_type == Ticket_pourpose.START:
+      self.loading_window = Loading(self)
+      self.loading_window.start()
+
+    if msg.ticket_type == Ticket_pourpose.KEEP_ALIVE:
+      self.loading_window.grab_set_global()
+
+    if msg.ticket_type == Ticket_pourpose.END_TASK:
+      self.loading_window.stop("Fatto!")
 
   def initialize_data(self):
     """ Generate the necessary data for widgets """
@@ -432,8 +443,10 @@ class CSV_Toolkit(Main_window):
     if (count == 1):
         self._first_loaded_file = None
         self._first_file_name.set('')
+
         self.clean_preview()
         self._genera.state([DISABLED])
+        
         self._results.clear()
 
     if (count == 2):

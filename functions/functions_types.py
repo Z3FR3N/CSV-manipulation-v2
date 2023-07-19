@@ -1,3 +1,4 @@
+from threading import Thread
 from functions.function import Function, main
 from general_settings import multicolumnconfigure, multirowconfigure, loadqueue
 from tkinter import Radiobutton, StringVar, IntVar
@@ -5,7 +6,7 @@ from tkinter.ttk import Combobox, Frame, Label, Separator, Button, Checkbutton, 
 from tkinter.constants import NSEW, EW, E, W, HORIZONTAL
 from dialogs.dialogs import Parameters, Error, ScrollableFrame
 from pandas import DataFrame, StringDtype
-from threading import Thread
+from multithreading import task
 from queue import Empty, Queue
 from enum import Enum, auto
 import numpy as np
@@ -21,42 +22,8 @@ import time
 
 class Multiple_search(Function):
   """ A class capable of confronting the values contained inside two columns """
-  class  Cells_comparison(Thread):
-    def __init__(self, queue : Queue):
-      super().__init__(daemon=True)
-      
-      self.queue = queue
-      
-      try:
-        self.column2_index = self.queue.get()
-        self.column2_list = self.queue.get()
-        self.column1_index = self.queue.get()
-        self.data_array2 = self.queue.get()
-        self.data_array1 = self.queue.get()
-        print('queue inizializzata')
-      except Empty:
-        print('queue non inizializzata')
-
-      self.match = []
-      self.rejected = []
     
 # we can calculate the amount of comparisons and communicate to the mainloop throught the queue: https://www.youtube.com/watch?v=ghSDvtVJPck
-    
-    def run(self):
-      print('entrato in run')
-      for row in self.data_array1:
-        cell1 = row[self.column1_index]
-        self.rejected.append(cell1)
-        for row2 in self.data_array2:
-          cell2 = row2[self.column2_index]
-          if str(cell1) == str(cell2):
-            self.match.append(row2)
-            self.rejected.remove(cell1)
-      print('fatto')
-      self.result = DataFrame(self.match, columns = self.column2_list, dtype=object)
-      
-      self.queue.put(self.rejected)
-      self.queue.put(self.result)
 
   def __init__(self, main_window : main):
     super().__init__('Ricerca multipla', main_window)
@@ -182,25 +149,49 @@ class Multiple_search(Function):
         n_row += 1
   
   def generate(self):
-    loadqueue(  self.main_window.queue, 
-              [ self.column_list2.index(self.column_chosen2.get()), 
-                self.column_list2, self.column_list1.index(self.column_chosen1.get()), 
-                self.data_chosen2.to_numpy(na_value="DTP", dtype=StringDtype), 
-                self.data_chosen1.to_numpy(na_value="DTP", dtype=StringDtype) ])
-    
-    #for element in [  self.column_list2.index(self.column_chosen2.get()), 
-    #                  self.column_list2, self.column_list1.index(self.column_chosen1.get()), 
-    #                  self.data_chosen2.to_numpy(na_value="DTP", dtype=StringDtype), 
-    #                  self.data_chosen1.to_numpy(na_value="DTP", dtype=StringDtype) ]:
-    #  self.main_window.queue.put(element)
-    # generate an event in the mainloop to display Loading window
-    # self._window.event_generate("<<CheckQueue>>")
-    thread = self.Cells_comparison(self.main_window.queue)
-    thread.start()
+    numpy1 = self.data_chosen1.to_numpy(na_value="DTP", dtype=StringDtype, copy=True)
+    numpy2 = self.data_chosen2.to_numpy(na_value="DTP", dtype=StringDtype, copy=True)
+    new_thread = Thread(target=task, kwargs={ 'main_window' : self._window,
+                                              'queue' : self.main_window.queue,
+                                              'data_array1' : numpy1,
+                                              'column1_index' : self.column_list1.index(self.column_chosen1.get()),
+                                              'data_array2' : numpy2,
+                                              'column2_index' : self.column_list2.index(self.column_chosen2.get()),
+                                              'column2_list' : self.column_list2})
+    new_thread.start()
     banana = self.main_window.queue.get()
     banana2 = self.main_window.queue.get()
     print(banana2.head())
     print(len(banana))
+  
+  """ def task(queue : Queue, data_array1, column1_index : int, data_array2, column2_index : int, column2_list : list):
+      rejected = []
+      match = []
+      ticket = Ticket(ticket_type= Ticket_pourpose.START, ticket_value= '')
+      queue.put(ticket)
+      self.main_window.event_generate("<<CheckQueue>>", when='tail')
+      for row in data_array1:
+        cell1 = row[column1_index]
+        rejected.append(cell1)
+        ticket = Ticket(ticket_type= Ticket_pourpose.KEEP_ALIVE, ticket_value= '')
+        queue.put(ticket)
+        self._window.event_generate("<<CheckQueue>>")
+        for row2 in data_array2:
+          cell2 = row2[column2_index]
+          if str(cell1) == str(cell2):
+            match.append(row2)
+            rejected.remove(cell1)
+            print(str(cell1) + ' ' + str(cell2))
+            ticket = Ticket(ticket_type= Ticket_pourpose.KEEP_ALIVE, ticket_value= '')
+            queue.put(ticket)
+            self._main_window.event_generate("<<CheckQueue>>")
+      result = DataFrame(match, columns = column2_list, dtype=object)
+      
+      self.main_window.queue.put(rejected)
+      self.main_window.queue.put(result)
+      ticket = Ticket(ticket_type= Ticket_pourpose.END_TASK, ticket_value= '')
+      self._main_window.queue.put(ticket)
+      self._main_window.event_generate("<<CheckQueue>>") """
         
   def export(self):
     # Aggiungere ai risultati il CSV generato

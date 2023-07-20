@@ -1,11 +1,12 @@
 from threading import Thread
+from unittest import result
 from functions.function import Function, main
 from general_settings import multicolumnconfigure, multirowconfigure, loadqueue
-from tkinter import Radiobutton, StringVar, IntVar
+from tkinter import END, Radiobutton, StringVar, IntVar
 from tkinter.ttk import Combobox, Frame, Label, Separator, Button, Checkbutton, Entry
 from tkinter.constants import NSEW, EW, E, W, HORIZONTAL
 from dialogs.dialogs import Parameters, Error, ScrollableFrame
-from pandas import DataFrame, StringDtype
+from pandas import DataFrame, StringDtype, Series
 from multithreading import task
 from queue import Empty, Queue
 from enum import Enum, auto
@@ -357,7 +358,6 @@ class String_length_check(Function):
     multirowconfigure(self._window.main_frame, [1,2,3], weight=1)
     multirowconfigure(self._window.main_frame, [0,4], weight=2)
 
-
     self.top_frame = Frame(self.main_frame)
 
     self.csv_label = Label(self.top_frame, text= 'CSV: ')
@@ -380,8 +380,18 @@ class String_length_check(Function):
     self.separatore2 = Separator(self.main_frame, orient=HORIZONTAL)
     self.separatore2.grid(column=0, row=3, sticky=EW)
 
+    # Bottom Frame
     self.bottom_frame = Frame(self.main_frame)
-    self.bottom_label1 = Label(self.bottom_frame, text='Individua celle più lunghe di')
+    self.bottom_frame.grid(column= 0, row= 3, sticky=EW)
+
+    self.bottom_label1 = Label(self.bottom_frame, text='Celle più lunghe di: ')
+    self.bottom_label1.grid(column= 1, row=0)
+
+    multicolumnconfigure(self.bottom_frame, [0, 3], weight= 1)
+
+    self.chosen_lenght = IntVar()
+    self.bottom_entry = Entry(self.bottom_frame, textvariable=self.chosen_lenght, width= 8)
+    self.bottom_entry.grid(column= 2, row=0)
 
     # Il secondo cambia la vista in base ai valori
     self.mid_frame = Frame(self.main_frame)
@@ -420,11 +430,48 @@ class String_length_check(Function):
       grid_row+= 1 
 
   def generate(self):
-    for i in range(len(self._chosen)):
+    try:
+      int(self.bottom_entry.get())
+    except ValueError:
+      self.bottom_entry.delete(0,END)
+      return Error(self._window, 'Inserisci un numero!')
+    
+    columns_counters = list() # name of the columns taken
+    columns_names = list()
+    counter = 0
+    for i in range(len(self._chosen)): # getting the index of the columns
       if self._chosen[i].get() == 1:
-        column = self._columns_list[i]
-        
-    print()
+        columns_counters.append(counter)
+        columns_names.append(str(self._columns_list[i]))
+      counter+=1
+    columns = dict(zip(columns_counters, columns_names))
+    print(columns)
+    data = self._dataframe_chosen.to_numpy(dtype= object, copy= True)
+    found = list()
+    indexes = list()
+    results = DataFrame()
+    
+    #task
+    loc = 0
+    for column in columns_counters:
+      counter = 1
+      for row in data:
+        cell = row[column]
+        if len(str(cell)) >= self.chosen_lenght.get():
+          found.append(str(cell))
+          indexes.append(str(counter))
+        counter+=1
+      print(len(found))
+      print(len(indexes))
+      column_name = columns[column]
+      joinable = DataFrame(found, columns= [column_name])
+      results.join(joinable)
+      print(joinable.head())
+      joinable2 = DataFrame(indexes, columns= ['RIGA'])
+      results.join(joinable2)
+    print(results.head())
+      
+    # Salvare un dataframe con l'accoppiamento del nome della colonna e la riga corrispondente
 
   def export(self):
     # TODO: Utilizzare Columnsselection per scegliere le colonne

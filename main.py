@@ -569,7 +569,7 @@ class CSV_Toolkit(Main_window):
   def generate_function_list(self):
     """ Takes all the classes names from the function_types files and initialize it to point to the right class """
     skip = [  'CSV_Toolkit', 'Button', 'Checkbutton', 'Combobox', 'DataFrame', 'Entry', 'Error', 'Function', 'Frame', 'IOBase',
-              'IntVar', 'Label', 'LabelFrame', 'Notebook', 'Queue', 'Radiobutton', 'ScrollableFrame', 'Separator', 'StringDtype', 'StringVar', 'Table', 'Tcl', 'Thread', 'Image', 'ImageTk', 'MainWindow', 'Table', 'Loading', 'Parameters', 'ThreadPool'] # some cleaning before analyzing the list (avoid the instanciation of useless class)
+              'IntVar', 'Label', 'LabelFrame', 'Notebook', 'Queue', 'Radiobutton', 'ScrollableFrame', 'Separator', 'StringDtype', 'StringVar', 'Table', 'Tcl', 'Thread', 'Image', 'ImageTk', 'MainWindow', 'Table', 'Loading', 'Parameters', 'ThreadPool', 'Series'] # some cleaning before analyzing the list (avoid the instanciation of useless class)
     for name, obj in getmembers(modules[__name__]):
       if name in skip: # avoid instanciating known classes:
         continue

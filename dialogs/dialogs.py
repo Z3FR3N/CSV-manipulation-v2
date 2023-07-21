@@ -2,7 +2,7 @@ from time import sleep
 from numpy import column_stack
 from dialogs.window_setting import Window
 from tkinter.ttk import Frame, Label, Button, Separator, Progressbar
-from tkinter import Scrollbar, Canvas, VERTICAL, NS, NSEW, NW, EW, NE
+from tkinter import Scrollbar, Canvas, VERTICAL, NS, NSEW, NW, EW, NE, Toplevel
 
 class Error(Window):
     # Taking a message to display an error
@@ -106,7 +106,6 @@ class Loading(Window):
         self.message.config(text=message)
         sleep(2)
         self.destroy()
-
 
 class ScrollableFrame(Frame):
     def __init__(self, parent, height, *args, **kw):

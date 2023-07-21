@@ -2,7 +2,7 @@ from queue import Queue
 from sys import modules
 from io import IOBase
 from inspect import ismethod, getmembers, isclass
-from tkinter import LabelFrame, StringVar
+from tkinter import LabelFrame, StringVar, Toplevel
 from tkinter.ttk import Frame, Button, Combobox, Radiobutton, Notebook, Label
 from tkinter.constants import N, S, E, W, NSEW, DISABLED, ACTIVE, CENTER, LEFT, GROOVE, FLAT
 from multithreading import Ticket_pourpose
@@ -454,10 +454,20 @@ class CSV_Toolkit(Main_window):
         self._second_file_name.set('')
         self.clean_preview(count)
         self._results.clear()
+    
+    for widget in self.winfo_children():
+        if isinstance(widget, Toplevel):
+            widget.destroy()
+    
+    self._results.clear()
+    self.results_names.clear()
 
   def generate(self):
     """ Launch the selected class to the notebook"""
     #try:
+    for widget in self.winfo_children():
+      if isinstance(widget, Toplevel) and widget:
+        widget.destroy()
     for fun in self._function_list:
       if fun.__eq__(self._selected_function.get()) and ismethod(fun.take_parameters):
         fun.take_parameters()

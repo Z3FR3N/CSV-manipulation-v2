@@ -76,7 +76,9 @@ class Function(metaclass= ABCMeta):
     @abstractmethod
     def export(self):
       # Checking the name for saving and adding to main.results
-      return self.main_window.add_results(self._result, self._result_name.get())
+      self.main_window.add_results(self._result, self._result_name.get())
+      self._result = DataFrame()
+      self._result_name.set("")
 
     @abstractmethod
     def info(self):

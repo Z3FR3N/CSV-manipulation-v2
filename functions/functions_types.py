@@ -6,8 +6,9 @@ from tkinter import END, Radiobutton, StringVar, IntVar
 from tkinter.ttk import Combobox, Frame, Label, Separator, Button, Checkbutton, Entry
 from tkinter.constants import NSEW, EW, E, W, HORIZONTAL
 from dialogs.dialogs import Parameters, Error, ScrollableFrame
-from pandas import DataFrame, StringDtype, Series
+from pandas import DataFrame, StringDtype, Series, concat
 from multithreading import task
+from collections import defaultdict
 from queue import Empty, Queue
 from enum import Enum, auto
 import numpy as np
@@ -382,16 +383,16 @@ class String_length_check(Function):
 
     # Bottom Frame
     self.bottom_frame = Frame(self.main_frame)
-    self.bottom_frame.grid(column= 0, row= 3, sticky=EW)
+    self.bottom_frame.grid(column= 0, row= 4, sticky=NSEW)
 
-    self.bottom_label1 = Label(self.bottom_frame, text='Celle più lunghe di: ')
-    self.bottom_label1.grid(column= 1, row=0)
+    self.bottom_label1 = Label(self.bottom_frame, text='Celle maggiori di: ')
+    self.bottom_label1.grid(column= 1, row=0, pady= 4)
 
     multicolumnconfigure(self.bottom_frame, [0, 3], weight= 1)
 
     self.chosen_lenght = IntVar()
-    self.bottom_entry = Entry(self.bottom_frame, textvariable=self.chosen_lenght, width= 8)
-    self.bottom_entry.grid(column= 2, row=0)
+    self.bottom_entry = Entry(self.bottom_frame, textvariable=self.chosen_lenght, width= 6)
+    self.bottom_entry.grid(column= 2, row=0, pady=4)
 
     # Il secondo cambia la vista in base ai valori
     self.mid_frame = Frame(self.main_frame)
@@ -402,7 +403,7 @@ class String_length_check(Function):
                                                         self.top_frame.winfo_reqheight() -
                                                         self.bottom_frame.winfo_reqheight() -
                                                         self.separatore.winfo_reqheight() -
-                                                        self._window.bottom_frame.winfo_reqheight() - 20)) #defining height
+                                                        self._window.bottom_frame.winfo_reqheight())) #defining height
 
     self.scrollable.grid(column= 0, row=0, sticky=NSEW)
     self.mid_frame.grid(column=0, row=2, sticky=EW)
@@ -444,34 +445,46 @@ class String_length_check(Function):
         columns_counters.append(counter)
         columns_names.append(str(self._columns_list[i]))
       counter+=1
-    columns = dict(zip(columns_counters, columns_names))
-    print(columns)
+
     data = self._dataframe_chosen.to_numpy(dtype= object, copy= True)
     found = list()
     indexes = list()
-    results = DataFrame()
+    data1 = list()
     
     #task
-    loc = 0
+    lenght = 0
     for column in columns_counters:
-      counter = 1
+      counter = 2
+      found.clear()
+      indexes.clear()
       for row in data:
         cell = row[column]
         if len(str(cell)) >= self.chosen_lenght.get():
           found.append(str(cell))
           indexes.append(str(counter))
+          if len(found) > lenght: lenght = len(found)
         counter+=1
-      print(len(found))
-      print(len(indexes))
-      column_name = columns[column]
-      joinable = DataFrame(found, columns= [column_name])
-      results.join(joinable)
-      print(joinable.head())
-      joinable2 = DataFrame(indexes, columns= ['RIGA'])
-      results.join(joinable2)
-    print(results.head())
-      
-    # Salvare un dataframe con l'accoppiamento del nome della colonna e la riga corrispondente
+      data1.append(found)
+      data1.append(indexes)
+
+    dataframe_columns_names = list()
+    
+    for name in columns_names:
+      dataframe_columns_names.append(str(name))
+      dataframe_columns_names.append('RIGA PER ' + str(name)) 
+    
+    for element in data1:
+      element.extend([None]*(lenght-len(element)))
+    a_dict = dict(zip(dataframe_columns_names, data1))
+    loc = 0
+    for name, data in a_dict.items():
+      if (loc % 2 != 0):
+        self._result.insert(loc, 'RIGA', data, allow_duplicates=True)
+      else:
+        self._result.insert(loc, name, data, allow_duplicates=True)
+      loc+=1
+    self._result_name = StringVar(value=('MAGGIORI_DI_' + str(self.chosen_lenght.get())))
+    self.export()
 
   def export(self):
     # TODO: Utilizzare Columnsselection per scegliere le colonne

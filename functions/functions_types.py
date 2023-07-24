@@ -7,10 +7,11 @@ from tkinter.ttk import Combobox, Frame, Label, Separator, Button, Checkbutton, 
 from tkinter.constants import NSEW, EW, E, W, HORIZONTAL
 from dialogs.dialogs import Parameters, Error, ScrollableFrame
 from pandas import DataFrame, StringDtype, Series, concat
-from multithreading import task
+from multithreading import Ticket, Ticket_pourpose
 from collections import defaultdict
 from queue import Empty, Queue
 from enum import Enum, auto
+from numpy import NaN
 import numpy as np
 import datetime as dt
 import time
@@ -151,49 +152,51 @@ class Multiple_search(Function):
         n_row += 1
   
   def generate(self):
-    numpy1 = self.data_chosen1.to_numpy(na_value="DTP", dtype=StringDtype, copy=True)
-    numpy2 = self.data_chosen2.to_numpy(na_value="DTP", dtype=StringDtype, copy=True)
-    new_thread = Thread(target=task, kwargs={ 'main_window' : self._window,
-                                              'queue' : self.main_window.queue,
-                                              'data_array1' : numpy1,
-                                              'column1_index' : self.column_list1.index(self.column_chosen1.get()),
-                                              'data_array2' : numpy2,
-                                              'column2_index' : self.column_list2.index(self.column_chosen2.get()),
-                                              'column2_list' : self.column_list2})
+    numpy1 = self.data_chosen1.to_numpy(na_value= NaN, dtype=StringDtype, copy=True)
+    numpy2 = self.data_chosen2.to_numpy(na_value= NaN, dtype=StringDtype, copy=True)
+    new_thread = Thread(target=self.task, kwargs={  'queue' : self.main_window.queue,
+                                                    'data_array1' : numpy1,
+                                                    'column1_index' : self.column_list1.index(self.column_chosen1.get()),
+                                                    'data_array2' : numpy2,
+                                                    'column2_index' : self.column_list2.index(self.column_chosen2.get()),
+                                                    'column2_list' : self.column_list2})
     new_thread.start()
-    banana = self.main_window.queue.get()
-    banana2 = self.main_window.queue.get()
-    print(banana2.head())
-    print(len(banana))
+    rejected = self.main_window.queue.get()
+    self._result = self.main_window.queue.get()
+    self._result_name.set('Risultato confronto')
+    print(len(rejected))
+    super().export()
   
-  """ def task(queue : Queue, data_array1, column1_index : int, data_array2, column2_index : int, column2_list : list):
+  def task(self, queue : Queue, data_array1, column1_index : int, data_array2, column2_index : int, column2_list : list):
       rejected = []
       match = []
-      ticket = Ticket(ticket_type= Ticket_pourpose.START, ticket_value= '')
-      queue.put(ticket)
-      self.main_window.event_generate("<<CheckQueue>>", when='tail')
+      #ticket = Ticket(ticket_type= Ticket_pourpose.START, ticket_value= '')
+      #queue.put(ticket)
+      #self._main_window.event_generate("<<CheckQueue>>", when='tail')
       for row in data_array1:
-        cell1 = row[column1_index]
+        cell1 = str(row[column1_index]).strip()
         rejected.append(cell1)
-        ticket = Ticket(ticket_type= Ticket_pourpose.KEEP_ALIVE, ticket_value= '')
-        queue.put(ticket)
-        self._window.event_generate("<<CheckQueue>>")
+        #ticket = Ticket(ticket_type= Ticket_pourpose.KEEP_ALIVE, ticket_value= '')
+        #queue.put(ticket)
+        #self._window.event_generate("<<CheckQueue>>")
         for row2 in data_array2:
-          cell2 = row2[column2_index]
-          if str(cell1) == str(cell2):
+          cell2 = str(row2[column2_index]).strip()
+          if cell1 == cell2:
             match.append(row2)
-            rejected.remove(cell1)
-            print(str(cell1) + ' ' + str(cell2))
-            ticket = Ticket(ticket_type= Ticket_pourpose.KEEP_ALIVE, ticket_value= '')
-            queue.put(ticket)
-            self._main_window.event_generate("<<CheckQueue>>")
+            try:
+              rejected.remove(cell1)
+            except ValueError:
+              continue
+            #ticket = Ticket(ticket_type= Ticket_pourpose.KEEP_ALIVE, ticket_value= '')
+            #queue.put(ticket)
+            #self._main_window.event_generate("<<CheckQueue>>")
       result = DataFrame(match, columns = column2_list, dtype=object)
       
-      self.main_window.queue.put(rejected)
-      self.main_window.queue.put(result)
-      ticket = Ticket(ticket_type= Ticket_pourpose.END_TASK, ticket_value= '')
-      self._main_window.queue.put(ticket)
-      self._main_window.event_generate("<<CheckQueue>>") """
+      queue.put(rejected)
+      queue.put(result)
+      #ticket = Ticket(ticket_type= Ticket_pourpose.END_TASK, ticket_value= '')
+      #self._main_window.queue.put(ticket)
+      #self._main_window.event_generate("<<CheckQueue>>")
         
   def export(self):
     # Aggiungere ai risultati il CSV generato

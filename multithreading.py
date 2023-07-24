@@ -34,17 +34,16 @@ def task(main_window : Tk, queue : Queue, data_array1, column1_index : int, data
   queue.put(ticket)
   main_window.event_generate("<<CheckQueue>>", when='tail')
   for row in data_array1:
-    cell1 = row[column1_index]
+    cell1 = str(row[column1_index]).strip()
     rejected.append(cell1)
     ticket = Ticket(ticket_type= Ticket_pourpose.KEEP_ALIVE, ticket_value= '')
     queue.put(ticket)
     main_window.event_generate("<<CheckQueue>>",  when='tail')
     for row2 in data_array2:
-      cell2 = row2[column2_index]
-      if str(cell1) == str(cell2):
+      cell2 = str(row2[column2_index]).strip()
+      if cell1 == cell2:
         match.append(row2)
         rejected.remove(cell1)
-        print(str(cell1) + ' ' + str(cell2))
         ticket = Ticket(ticket_type= Ticket_pourpose.KEEP_ALIVE, ticket_value= '')
         queue.put(ticket)
         main_window.event_generate("<<CheckQueue>>",  when='tail')

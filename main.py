@@ -21,6 +21,7 @@ from functions.functions_types import * # wildcard is necessary, this is a very 
         - Enhance encapsulation and setting the returns for better reporting
         - Create a map for managing results to associate Dataframes.
         - Create the check_queue method to communicate with threads
+        - Problema nell'inversione dei file
 """
 
 class CSV_Toolkit(Main_window):

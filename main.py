@@ -21,7 +21,7 @@ from functions.functions_types import * # wildcard is necessary, this is a very 
         - Enhance encapsulation and setting the returns for better reporting
         - Create a map for managing results to associate Dataframes.
         - Create the check_queue method to communicate with threads
-        - Problema nell'inversione dei file
+        - Switch not working as intended
 """
 
 class CSV_Toolkit(Main_window):
@@ -32,7 +32,7 @@ class CSV_Toolkit(Main_window):
   _results = list()
 
   def __init__(self):
-    super().__init__('Manipolazione CSV', 550, 500, 400, "CSV manipulation v2\\ICO.png", 30 )
+    super().__init__('CSV Toolkit', 550, 500, 400, "CSV manipulation v2\\ICO.png", 30 )
     
     self.initialize_data()
     self.generate_function_list()

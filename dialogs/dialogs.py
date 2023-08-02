@@ -1,6 +1,7 @@
 from time import sleep
 from numpy import column_stack
 from dialogs.window_setting import Window
+from general_settings import multicolumnconfigure, multirowconfigure
 from tkinter.ttk import Frame, Label, Button, Separator, Progressbar
 from tkinter import Scrollbar, Canvas, VERTICAL, NS, NSEW, NW, EW, NE, Toplevel
 
@@ -48,6 +49,7 @@ class Parameters(Window):
         self.title(function.name)
         self.focus()
         self.main_frame = Frame(self)
+
         # Creo i due sottoframe: il superiore ospita il contenuto, quello inferiore il bottone 'applica'
         self.content = Frame(self.main_frame)
         self.separator = Separator(self.main_frame, orient='horizontal')
@@ -83,12 +85,8 @@ class Loading(Window):
         
         self.main_frame = Frame(self)
         self.main_frame.grid(row=0, column=0, sticky= NSEW)
-        self.main_frame.grid_columnconfigure(0, weight=1)
-        self.main_frame.grid_columnconfigure(2, weight=1)
-        self.main_frame.grid_rowconfigure(0, weight= 1)
-        self.main_frame.grid_rowconfigure(1, weight= 1)
-        self.main_frame.grid_rowconfigure(2, weight= 1)
-        self.main_frame.grid_rowconfigure(3, weight= 1)
+        multicolumnconfigure(self.main_frame, [0,2], weight=1)
+        multirowconfigure(self.main_frame,[0,1,2,3], weight=1)
 
         self.message = Label(self.main_frame, text='Attendere' )
         self.message.grid(row=1, column=1, pady=3)

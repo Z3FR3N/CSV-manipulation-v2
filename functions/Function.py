@@ -35,7 +35,7 @@ class Function(metaclass= ABCMeta):
       self.csv_available = list()
       self.data_available = list()
       
-      # Input checking
+      # Input validation
       if self._first_file_name != "Nessun CSV caricato" and (not self._first_file_name.isspace()):
         self.csv_available.append(self._first_file_name)
       if self._second_file_name != 'Nessun CSV caricato' and (not self._second_file_name.isspace()):

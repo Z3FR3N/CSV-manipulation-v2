@@ -19,12 +19,18 @@ import time
 # functions_types contains every data-manipulating class
 # We need to use the data getters every time we need data -> Dataframes are not thread safe.
 
-# TODO: -Create an API to dinamically import functions from files in a folder
-#       - Return a Dataframe with missing/errors
-#       - A Function to analize some parameters of the csvs
+""" 
+TODO: -Create an API to dinamically import functions from files in a folder
+       - Return a Dataframe with missing/errors
+       - A Function to analize some parameters of the csvs/Dataframe given
+       - A function to split all the columns in a define char
+       - A function 
+"""
 
 class Multiple_search(Function):
-  """ A class capable of confronting the values contained inside two columns """
+  """ 
+  Compare one-by-one the values in two columns from two different Dataframes
+  """
     
 # we can calculate the amount of comparisons and communicate to the mainloop throught the queue: https://www.youtube.com/watch?v=ghSDvtVJPck
 

@@ -1,3 +1,4 @@
+import os
 from queue import Queue
 from sys import modules
 from io import IOBase
@@ -18,10 +19,12 @@ from functions.functions_types import * # wildcard is necessary, this is a very 
 """
   TODO: - Code optimization through Loop and better Attributes assignment
         - Better naming convention
-        - Enhance encapsulation and setting the returns for better reporting
-        - Create a map for managing results to associate Dataframes.
+        - Enhance encapsulation 
+        - Better testing/reporting
+        - Create a map for managing results to associate Dataframes
         - Create the check_queue method to communicate with threads
         - Switch not working as intended
+        - Merge data acquired, if correspondece is found
 """
 
 class CSV_Toolkit(Main_window):
@@ -32,7 +35,7 @@ class CSV_Toolkit(Main_window):
   _results = list()
 
   def __init__(self):
-    super().__init__('CSV Toolkit', 550, 500, 400, "CSV manipulation v2\\ICO.png", 30 )
+    super().__init__('CSV Toolkit', 550, 500, 400, resource_path('ICO.png'), 30 )
     
     self.initialize_data()
     self.generate_function_list()
@@ -379,15 +382,15 @@ class CSV_Toolkit(Main_window):
   def draw_preview(self, data : DataFrame, name: str, position : int):
     """ Draw the table for the Dataframe and adds it to the notebook"""
     # DataFrame loaded
-    self._csv = Frame(  self._csv_preview, relief= FLAT)   
+    self._csv = Frame(self._csv_preview, relief= FLAT)
       
     # Populating the frames
     self._table = Table(  self._csv, 
                           dataframe= data,
-                          showtoolbar= False, 
-                          showstatusbar= False,
-                          editable = False,
-                          enable_menus= False )
+                          showtoolbar= True, 
+                          showstatusbar= True,
+                          editable = True,
+                          enable_menus= True )
     self._table.show()
 
     if (len(self._csv_preview.tabs()) > position):
@@ -526,8 +529,9 @@ class CSV_Toolkit(Main_window):
         self._data1 = read_csv( self._first_loaded_file,
                                 dtype= str,
                                 sep= sep,
+                                header='infer',
                                 low_memory=False)
-        
+
         self.draw_preview( self._data1, self._first_file_name.get().split('.')[0], 1)
         self._genera.config(state=ACTIVE)
 
@@ -599,5 +603,12 @@ class CSV_Toolkit(Main_window):
     #def check_queue(self, queue: Queue):
        
 if __name__ == "__main__":
+  def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
   main = CSV_Toolkit()
   main.mainloop()

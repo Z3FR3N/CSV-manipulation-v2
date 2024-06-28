@@ -167,21 +167,25 @@ class Multiple_search(Function):
                                                     'column2_index' : self.column_list2.index(self.column_chosen2.get()),
                                                     'column2_list' : self.column_list2})
     new_thread.start()
-    rejected = self.main_window.queue.get()
+    self._rejected = self.main_window.queue.get()
     self._result = self.main_window.queue.get()
     self._result_name.set('Risultato confronto')
-    print(len(rejected))
     super().export()
-  
+    self._result = self._rejected
+    self._result_name.set('Rifiutati')
+    super().export()
+
   def task(self, queue : Queue, data_array1, column1_index : int, data_array2, column2_index : int, column2_list : list):
       rejected = []
       match = []
+      rejected_row = []
       #ticket = Ticket(ticket_type= Ticket_pourpose.START, ticket_value= '')
       #queue.put(ticket)
       #self._main_window.event_generate("<<CheckQueue>>", when='tail')
       for row in data_array1:
         cell1 = str(row[column1_index]).strip()
         rejected.append(cell1)
+        rejected_row.append(list(row))
         #ticket = Ticket(ticket_type= Ticket_pourpose.KEEP_ALIVE, ticket_value= '')
         #queue.put(ticket)
         #self._window.event_generate("<<CheckQueue>>")
@@ -191,14 +195,17 @@ class Multiple_search(Function):
             match.append(row2)
             try:
               rejected.remove(cell1)
+              rejected_row.remove(list(row))
             except ValueError:
               continue
+
             #ticket = Ticket(ticket_type= Ticket_pourpose.KEEP_ALIVE, ticket_value= '')
             #queue.put(ticket)
             #self._main_window.event_generate("<<CheckQueue>>")
       result = DataFrame(match, columns = column2_list, dtype=object)
-      
-      queue.put(rejected)
+      rejected_data = DataFrame(rejected_row, columns=list(self.data_chosen1.columns.values), dtype=object)
+      print(len(rejected))
+      queue.put(rejected_data)
       queue.put(result)
       #ticket = Ticket(ticket_type= Ticket_pourpose.END_TASK, ticket_value= '')
       #self._main_window.queue.put(ticket)
@@ -456,7 +463,8 @@ class String_length_check(Function):
       counter+=1
 
     data = self._dataframe_chosen.to_numpy(dtype= object, copy= True)
-    found = list()
+    first_part = list()
+    second_part = list()
     indexes = list()
     data1 = list()
     
@@ -464,34 +472,30 @@ class String_length_check(Function):
     lenght = 0
     for column in columns_counters:
       counter = 2
-      found.clear()
+      first_part.clear()
+      second_part.clear()
       indexes.clear()
+
       for row in data:
         cell = row[column]
-        if len(str(cell)) >= self.chosen_lenght.get():
-          found.append(str(cell))
-          indexes.append(str(counter))
-          if len(found) > lenght: lenght = len(found)
-        counter+=1
-      data1.append(found)
-      data1.append(indexes)
 
-    dataframe_columns_names = list()
-    
-    for name in columns_names:
-      dataframe_columns_names.append(str(name))
-      dataframe_columns_names.append('RIGA PER ' + str(name)) 
-    
-    for element in data1:
-      element.extend([None]*(lenght-len(element)))
-    a_dict = dict(zip(dataframe_columns_names, data1))
-    loc = 0
-    for name, data in a_dict.items():
-      if (loc % 2 != 0):
-        self._result.insert(loc, 'RIGA', data, allow_duplicates=True)
-      else:
-        self._result.insert(loc, name, data, allow_duplicates=True)
-      loc+=1
+        if len(str(cell)) >= self.chosen_lenght.get(): # quì è possibile introdurre il conteggio da destra o da sinistra
+          first_part.append(str(cell)[0:self.chosen_lenght.get()])
+          second_part.append(str(cell)[self.chosen_lenght.get():-1])
+          indexes.append(str(counter))
+          
+          #if len(found) > lenght: lenght = len(found)
+        counter+=1
+
+    columns_dict = {'Prima parte': first_part, 'Seconda parte': second_part, 'Riga': indexes}
+    # loc = 0
+    # for name, data in a_dict.items():
+    #   if (loc % 2 != 0):
+    #     self._result.insert(loc, 'RIGA', data, allow_duplicates=True)
+    #   else:
+    #     self._result.insert(loc, name, data, allow_duplicates=True)
+    #   loc+=1
+    self._result = DataFrame(columns_dict)
     self._result_name = StringVar(value=('MAGGIORI_DI_' + str(self.chosen_lenght.get())))
     self.export()
 
@@ -501,4 +505,3 @@ class String_length_check(Function):
 
   def info(self):
     return super().info()
-  

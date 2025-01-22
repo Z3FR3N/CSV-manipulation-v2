@@ -44,5 +44,5 @@ Combobox che contiene la lista delle delle funzioni disponibili, eredita
 Comunica all'utente l'avanzamento dell'elaborazione. *Attualmente non funzionante* per un thread lock causato dal Dataframe che impedisce a Tkinter di gestire la UI. Refactoring necessario.
 
 ### Demo
-[![Video demo](https://raw.githubusercontent.com/Z3FR3N/CSV-manipulation-v2/master/video/thumbnail.png)](https://raw.githubusercontent.com/Z3FR3N/CSV-manipulation-v2/master/video/demo.mp4)
+[![Video demo](video/thumbnail.png)](video/demo.mp4)
 

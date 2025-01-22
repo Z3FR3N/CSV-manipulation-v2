@@ -25,24 +25,24 @@ Occorre configurare la griglia di appoggio ai vari widgets: deve essere 4X7 potr
 
 - *Opzioni*: Non ancora utilizzato, utile in caso di implementazione di un API per le funzioni personalizzate
 - *Info*: Apre la finestra di spiegazione delle funzioni
-- *Applica*: Lancia la funzione selezionata, generando il file di otuput
+- *Genera*: Lancia la funzione selezionata, generando il file di otuput
 - *Carica*: Caricamento dei file CSV, chiaramente viene prima caricato il primo file e poi il secondo
 - *Reset*: Riporta la finestra allo stato iniziale eliminando i progressi
-- *Save*: Permette di salvare i file
+- *Salva*: Permette di salvare i file
 - *Inverti*: Inverte i csv caricati(l'ordine può essere utile in determinate funzioni)
 
 ### Preview CSV - `Notebook()`
 
-Rappresenta l'anteprima di *n* righe del file caricato.
+Rappresenta l'anteprima di *n* righe del file caricato e può essere utile anche per una "copia al volo" di alcuni dati. *Non si presuppone* la modifica o l'utilizzo delle colonne in maniera massiva che va fatta attraverso l'uso delle funzioni.
 
 ### Lista funzioni - `Combobox()`
 
-Combobox che contiene la lista delle delle funzioni disponibili
+Combobox che contiene la lista delle delle funzioni disponibili, eredita 
 
 ### Finestra di attesa - `ProgressBar()`
 
-Comunica all'utente l'avanzamento dell'elaborazione
+Comunica all'utente l'avanzamento dell'elaborazione. *Attualmente non funzionante* per un thread lock causato dal Dataframe che impedisce a Tkinter di gestire la UI. Refactoring necessario.
 
-## To-Do
+### Demo
+[![Video demo](https://raw.githubusercontent.com/Z3FR3N/CSV-manipulation-v2/master/video/thumbnail.png)](https://raw.githubusercontent.com/Z3FR3N/CSV-manipulation-v2/master/video/demo.mp4)
 
-- [ ] API per l'aggiunta di funzioni

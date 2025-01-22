@@ -25,6 +25,7 @@ from functions.functions_types import * # wildcard is necessary, this is a very 
         - Create the check_queue method to communicate with threads
         - Switch not working as intended
         - Merge data acquired, if correspondece is found
+        - Bug found when merging columns: if the origin column is empty, the new column shift to the left side when merging (or bad header reading)
 """
 
 class CSV_Toolkit(Main_window):
@@ -35,7 +36,7 @@ class CSV_Toolkit(Main_window):
   _results = list()
 
   def __init__(self):
-    super().__init__('CSV Toolkit', 550, 500, 400, resource_path('ICO.png'), 30 )
+    super().__init__('CSV Toolkit', 550, 500, 400, 'C:\\Users\\EAN0201\\Desktop\\Sviluppo\\CSV manipulation v2\\ICO.png', 30 )
     
     self.initialize_data()
     self.generate_function_list()
@@ -603,12 +604,5 @@ class CSV_Toolkit(Main_window):
     #def check_queue(self, queue: Queue):
        
 if __name__ == "__main__":
-  def resource_path(relative_path):
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)
   main = CSV_Toolkit()
   main.mainloop()

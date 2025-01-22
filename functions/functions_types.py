@@ -24,7 +24,8 @@ TODO: -Create an API to dinamically import functions from files in a folder
        - Return a Dataframe with missing/errors
        - A Function to analize some parameters of the csvs/Dataframe given
        - A function to split all the columns in a define char
-       - A function 
+       - A function to unite Dataframes in one csv
+       - A function which compare two column and merge the corresponding ones 
 """
 
 class Multiple_search(Function):
@@ -165,8 +166,11 @@ class Multiple_search(Function):
                                                     'column1_index' : self.column_list1.index(self.column_chosen1.get()),
                                                     'data_array2' : numpy2,
                                                     'column2_index' : self.column_list2.index(self.column_chosen2.get()),
-                                                    'column2_list' : self.column_list2})
+                                                    'column2_list' : self.column_list1 + self.column_list2})
+    start = time.time()
     new_thread.start()
+    end = time.time()
+    #self._doubles = self.main_window.queue.get()
     self._rejected = self.main_window.queue.get()
     self._result = self.main_window.queue.get()
     self._result_name.set('Risultato confronto')
@@ -174,11 +178,15 @@ class Multiple_search(Function):
     self._result = self._rejected
     self._result_name.set('Rifiutati')
     super().export()
+    #self._result = self._doubles
+    #self._result_name.set('Duplicati')
+    #super().export()
 
   def task(self, queue : Queue, data_array1, column1_index : int, data_array2, column2_index : int, column2_list : list):
       rejected = []
-      match = []
+      matches = []
       rejected_row = []
+      doubles = []
       #ticket = Ticket(ticket_type= Ticket_pourpose.START, ticket_value= '')
       #queue.put(ticket)
       #self._main_window.event_generate("<<CheckQueue>>", when='tail')
@@ -189,22 +197,44 @@ class Multiple_search(Function):
         #ticket = Ticket(ticket_type= Ticket_pourpose.KEEP_ALIVE, ticket_value= '')
         #queue.put(ticket)
         #self._window.event_generate("<<CheckQueue>>")
+        count = 1
+        count2 = 0
+        for match in doubles:
+            if cell1 == str(match):
+              count+=1
         for row2 in data_array2:
           cell2 = str(row2[column2_index]).strip()
+          
           if cell1 == cell2:
-            match.append(row2)
+            count2+=1
+
+            if((count2 == 1) and (count2 == count)):
+              matches.append(list(row) + list(row2))
+            
+            elif(count2 > count):
+              matches.append(list(row) + list(row2))
+              doubles.append(cell2)
+              
             try:
               rejected.remove(cell1)
               rejected_row.remove(list(row))
             except ValueError:
               continue
-
             #ticket = Ticket(ticket_type= Ticket_pourpose.KEEP_ALIVE, ticket_value= '')
             #queue.put(ticket)
             #self._main_window.event_generate("<<CheckQueue>>")
-      result = DataFrame(match, columns = column2_list, dtype=object)
+      n_cols = len(row) + len(row2)
+      cols_names = []
+      for i in range(n_cols):
+        cols_names.append(str(i))
+        #column2_list
+      result = DataFrame(matches, columns = cols_names, dtype=object)
       rejected_data = DataFrame(rejected_row, columns=list(self.data_chosen1.columns.values), dtype=object)
-      print(len(rejected))
+      #doubles = DataFrame(doubles, columns=cols_names, dtype= object)
+      print('Rifiutati: ', len(rejected))
+      print('Trovati: ', len(result))
+      #print('duplicati:', len(doubles))
+      #queue.put(doubles)
       queue.put(rejected_data)
       queue.put(result)
       #ticket = Ticket(ticket_type= Ticket_pourpose.END_TASK, ticket_value= '')

@@ -43,6 +43,9 @@ Combobox che contiene la lista delle delle funzioni disponibili, eredita
 
 Comunica all'utente l'avanzamento dell'elaborazione. *Attualmente non funzionante* per un thread lock causato dal Dataframe che impedisce a Tkinter di gestire la UI. Refactoring necessario.
 
+<<<<<<< HEAD
 ### Demo
 [![Video demo](video/thumbnail.png)](video/demo.mp4)
 
+=======
+>>>>>>> 9b0e8a4 (demo video not working)

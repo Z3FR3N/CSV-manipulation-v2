@@ -36,7 +36,7 @@ class CSV_Toolkit(Main_window):
   _results = list()
 
   def __init__(self):
-    super().__init__('CSV Toolkit', 550, 500, 400, 'C:\\Users\\EAN0201\\Desktop\\Sviluppo\\CSV manipulation v2\\icons\\ICO.png', 30 )
+    super().__init__('CSV Toolkit', 550, 500, 400, 'C:\\Users\\EAN0201\\Desktop\\Sviluppo\\CSV manipulation v2\\icons\\file.png', 30 )
     
     self.initialize_data()
     self.generate_function_list()

@@ -4,7 +4,7 @@ from queue import Queue
 from pandas import DataFrame
 
 """ 
-A ticket based system that uses queue to communicate the status of the Thread 
+A ticket based system that uses queue to communicate the status of the Thread. 
 """
 
 class Ticket_pourpose(Enum):

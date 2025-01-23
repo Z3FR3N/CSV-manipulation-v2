@@ -23,4 +23,6 @@ L'utility è composta da 3 sezioni:
   2. La zona centrale contiene l'anteprima dei file caricati, navigabile attraverso le tab;
   3. La parte bassa contiene la gestione dei file da caricare.
 
+https://github.com/user-attachments/assets/12109c2e-21fa-455e-b767-acebc50a3908
+
 <a href="https://www.flaticon.com/free-icons/data-table" title="data table icons">Thanks Flat Icons for the logo!</a>
